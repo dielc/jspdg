@@ -38,6 +38,38 @@ var addHeader = function (option, sliced) {
 			else
 				sliced.setup = sliced.setup.concat(NodeParse.createServer());
 	}
+
+	if (option.asynccomm === 'callbacks' && option.target === 'node.js') {
+		
+		var handlers      = [];
+		var proxies       = [];
+		var totalRpcCount = 0;
+		
+		option.failurehandlers.map(function (el) {
+			handlers = handlers.concat(Handler.Generate.makeHandlerNode(el));
+			totalRpcCount = totalRpcCount + el.rpcCount;
+			
+			//we only need a leaf if there are calls to this handler.
+			if (el.rpcCount > 0) {
+				var proxyName = Handler.Generate.makeProxyName(el.uniqueName)
+				proxies = proxies.concat(Handler.Generate.handlerProxyDefinition(proxyName, el.leafName));
+			}
+		});
+
+		//only add handler code if needed.
+		if(totalRpcCount > 0){
+			sliced.setup = sliced.setup.concat(Handler.Generate.handlerProxySetup());
+
+			handlers.map(function(el){
+				sliced.setup = sliced.setup.concat(el);
+			});
+
+			proxies.map(function (el) {
+				sliced.setup = sliced.setup.concat(el)
+			});
+		}
+	}
+
 	return sliced;
 }
 
@@ -99,6 +131,8 @@ var constructProgram = function (nodes, option) {
 		slicing, 
 		methods = [];
 	//program.body = addPrimitives(option);
+
+	option.failurehandlers = [];
 	while (nodes.length > 0) {
 		var n = nodes.shift();
 		if(n.parsenode) {
@@ -106,6 +140,11 @@ var constructProgram = function (nodes, option) {
 			if(slicing.parsednode) {
 				program.body = program.body.concat(slicing.parsednode);
 			}
+
+			if (slicing.failureHandlers){
+				option.failurehandlers = option.failurehandlers.concat(slicing.failureHandlers);
+			}
+
 			nodes = slicing.nodes;	
 			option.cloudtypes = slicing.cloudtypes;
 			methods = methods.concat(slicing.methods);
@@ -137,16 +176,18 @@ var Sliced = function (nodes, node, parsednode) {
     this.methods 	 = [];
     this.streams 	 = [];
 
-    this.cloudtypes  = {};
+    this.cloudtypes      = {};
+    this.failureHandlers = [];
 }
 
 var cloneSliced = function (sliced, nodes, node) {
-	var clone = new Sliced(nodes, node);
-	clone.methods    = sliced.methods;
-	clone.setup      = sliced.setup;
-	clone.streams    = sliced.streams;
-	clone.cloudtypes = sliced.cloudtypes;
-	clone.option     = sliced.option;
+	var clone             = new Sliced(nodes, node);
+	clone.methods         = sliced.methods;
+	clone.setup           = sliced.setup;
+	clone.streams         = sliced.streams;
+	clone.cloudtypes      = sliced.cloudtypes;
+	clone.failureHandlers = sliced.failureHandlers;
+	clone.option          = sliced.option;
 	return clone;
 }
 

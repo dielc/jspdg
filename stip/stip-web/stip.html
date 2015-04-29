@@ -58,6 +58,10 @@
 	<script src="js/transition.js"></script>
 	<script src="js/collapse.js"></script>
 	<script type="text/javascript" src="../aux.js"></script>
+	<script type="text/javascript" src="../handler-transform.js"></script>
+	<script type="text/javascript" src="../handler-predefined.js"></script>
+	<script type="text/javascript" src="../handler-generate.js"></script>
+	<script type="text/javascript" src="../handler.js"></script>
 	<script type="text/javascript" src="../PDG/edge.js"></script>
 	<script type="text/javascript" src="../PDG/node.js"></script>
 	<script type="text/javascript" src="../PDG/graph.js"></script>
@@ -99,11 +103,12 @@
 			$("#error").empty();
 			var src = editor.getSession().getValue(),
 			// First parse and create again via escodegen
-				ast = Ast.createAst(src, {loc:true, owningComments: true, comment: true});
-			src = escodegen.generate(escodegen.attachComments(ast, ast.comments, ast.tokens), {comment: true});
+			ast = Ast.createAst(src, {loc:true, owningComments: true, comment: true});
+
+			Handler.defined = Handler.Predefined.predefinedHandlers();
 
 			/* Pre analysis step */
-      		var preanalysis = pre_analyse(src);
+      		var preanalysis = pre_analyse(ast);
       		console.log(preanalysis.src);
       		assumes = preanalysis.assumes;
 			var src = editor.getSession().getValue(),

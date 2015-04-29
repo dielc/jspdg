@@ -1,10 +1,11 @@
-var pre_analyse = function (src) {
-	var anonf_ct = 0;
+var pre_analyse = function (ast) {
+	var anonf_ct   = 0;
 	var anonf_name = 'anonf';
-	var anonfs = [];
-	var decl = [];
-	var calls = [];
-	var assumes = [];
+	var anonfs     = [];
+	var decl       = [];
+	var calls      = [];
+	var assumes    = [];
+    var defhandlers = Handler.defined;
 	var comments = [];
 
 	var function_args = function (callnode) {
@@ -138,31 +139,56 @@ var pre_analyse = function (src) {
  		}
  	}
 
- 	var src = falafel(src, 
-		 		{ comment : true, tokens: true},
-				function (node) {
-				 
-				  if (node.type === "Block" && isAssumesAnnotated(node.value)) {
-				  	extractAssumes(node.value)
-				  }
+    estraverse.replace(ast, {
+        enter: function (node, parent) {
 
-				  if (esp_isCallExp(node)) {
-					var anonf = function_args(node);
-					if (anonf.length > 0) {
-						node.arguments = node.arguments.map(function (arg) {
-							if (esp_isFunExp(arg)) {
-								var name = anonf_name + ++anonf_ct;
-								anonfs = anonfs.concat(createFunction(arg, name));
-								decl = decl.concat(createDeclaration(name));
-								calls = calls.concat(createCall(name)); 	
-								return createIdentifier(name);
-							}
-							else 
-								return arg
-						})
-					}
-				}
-			}).toString();
+            if (esp_isBlock(node) && isAssumesAnnotated(node.value)) {
+                extractAssumes(node.value)
+            }
+
+            if (esp_isCallExp(node)) {
+                var anonf = function_args(node);
+                if (anonf.length > 0) {
+                    node.arguments = node.arguments.map(function (arg) {
+                        if (esp_isFunExp(arg)) {
+                            var name = anonf_name + ++anonf_ct;
+                            anonfs = anonfs.concat(createFunction(arg, name));
+                            decl = decl.concat(createDeclaration(name));
+                            calls = calls.concat(createCall(name));
+                            return createIdentifier(name);
+                        } else
+                            return arg
+                    })
+                }
+            }
+
+            if (esp_isVarDecl(node) && isDefineHandlerAnnotated(parent)) {
+
+                node.declarations.map(function (el) {
+                    if (esp_isObjExp(el.init)) {
+                        var transformedHandler = Handler.Transform.extractHandler(el);
+                        defhandlers[transformedHandler.name] = transformedHandler.handlerMaker;
+
+                    }
+                });
+
+                this.remove();
+            }
+
+        },
+        leave: function (node, parent) {
+            
+            if (esp_isBlockStm(node) && isDefineHandlerAnnotated(node))
+                this.remove();
+
+        }
+    });
+
+
+    var src = escodegen.generate(escodegen.attachComments(ast, ast.comments, ast.tokens), {
+        comment: true
+    });
+ 	
  	anonfs.map(function (func) {
  		src = escodegen.generate(func).concat(src)
  	})

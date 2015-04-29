@@ -30,6 +30,17 @@ var CPSTransform = (function () {
 		   	datadep = [],
 		    datadeps, calldeps, vardecls, parsednode, transformargs, bodynode;
 
+		if (call.handlerScope.length != 0) {
+			
+			if (asyncCall.setObjectName) {
+				var proxyName = Handler.Generate.makeProxyName(call.handlerScope[call.handlerScope.length - 1].uniqueName);
+				asyncCall.setObjectName(proxyName);
+			}
+			call.handlerScope[call.handlerScope.length - 1].rpcCount++;
+
+			console.log('MAKING RPC FOR', call.name, call, asyncCall.parsenode)
+		}    
+
 		/* Add original arguments to async call */
 		actual_ins.map(function(a_in) {
 			asyncCall.addArg(a_in.parsenode);

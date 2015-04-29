@@ -55,6 +55,10 @@ var esp_isBlockStm = function (node) {
 	return 	node.type === 'BlockStatement'
 }
 
+var esp_isBlock = function (node) {
+	return 	node.type === 'Block'
+}
+
 var esp_isIfStm = function (node) {
 	return 	node.type === 'IfStatement'
 }

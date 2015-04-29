@@ -28,6 +28,11 @@ var Stip = (function () {
 	var handleVarDecl = function (graphs, node, upnode) { 
 		node.declarations.map(function (decl) {
 			var	stmnode = graphs.PDG.makeStm(decl);
+
+			if (upnode.handlerScope) {
+				stmnode.handlerScope = upnode.handlerScope.slice();
+			}
+
 			if (upnode) 
 				stmnode.dtype = upnode.getdtype();
 			stmnode.name = decl.id.name;
@@ -100,7 +105,7 @@ var Stip = (function () {
 	 *  https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Parser_API#Statements
 	 */
 
-
+	 var ctr = 0;
 	/* BLOCK STATEMENT:
 	 * Consists of several statements surrounded by corresponding 
 	 * push and pop body edges */
@@ -108,6 +113,52 @@ var Stip = (function () {
 		var PDG 	  = graphs.PDG,
 			old_entry = PDG.entry_node,
 			new_entry = new EntryNode(PDG.ent_index, node);
+
+		if (!new_entry.handlerScope)
+			new_entry.handlerScope = [];
+
+		if (upnode.handlerScope) {
+			var upnodeScope = upnode.handlerScope.slice();
+			new_entry.handlerScope = new_entry.handlerScope.concat(upnodeScope);
+		}
+
+		if (isUseHandlerAnnotatedNode(node)) {
+			var regexp = Handler.handlerUseRegExp;
+			var comment = node.leadingComment.value;
+
+			if (comment.search(regexp) >= 0) {
+				match = regexp.exec(comment);
+				while (match != null) {
+					ctr++;
+					var m = match[1];
+					var priority = false;
+					if (m.substr(0, 1) === Handler.prioritySign) {
+						priority = true;
+						m = m.substr(1, m.length);
+					}
+
+					var currentName = m + ctr;
+
+					var annotationInfo = {
+						parent: currentName,
+						uniqueName: currentName,
+						handler: m,
+						rpcCount: 0,
+						priority: priority,
+						leafName: Handler.Generate.makeLeafName(currentName)
+					}
+
+					if (new_entry.handlerScope.length !== 0) {
+						//last one added is our parent
+						annotationInfo.parent = new_entry.handlerScope[new_entry.handlerScope.length - 1].uniqueName;
+					}
+
+					new_entry.handlerScope.push(annotationInfo);
+					match = regexp.exec(comment);
+				}
+			};
+		}
+
 		PDG.ent_index++;
 		addToPDG(new_entry, upnode);
 		node.body.map(function (exp) {
@@ -297,6 +348,10 @@ var Stip = (function () {
 			primitive = isPrimitiveCall(node),
 			callnode  = graphs.PDG.makeCall(node);
 		
+		if (upnode.handlerScope) {
+			callnode.handlerScope = upnode.handlerScope.slice();
+		}
+
 		callnode.name = parsenode.callee.toString();
 		if (primitive) {
 			callnode = PDG.makeCall(node);
