@@ -279,12 +279,28 @@ var Nodeify = (function () {
 		bodynodes.map(function (n) {
 			var toSlice = cloneSliced(sliced, sliced.nodes, n);
 			var bodynode = toNode(toSlice);
+
+			if (bodynode.node.handlerScope) {
+				bodynode.node.handlerScope = bodynode.failureHandlers.concat(bodynode.node.handlerScope)
+				bodynode.node.handlerScope.map(function (el) {
+					if (sliced.failureHandlers.indexOf(el) === -1) {
+						sliced.failureHandlers.push(el);
+					}
+				});
+			}
+
 			if( slicedContains(sliced.nodes, n) ) {
 					body = body.concat(bodynode.parsednode)
 			}
 			sliced.nodes = removeNode(bodynode.nodes,n);	
 			sliced.methods = bodynode.methods;
 			});
+
+		node.handlerScope.map(function (el) {
+			if (sliced.failureHandlers.indexOf(el) === -1)
+				sliced.failureHandlers.push(el)
+		})
+
 		sliced.nodes = sliced.nodes.remove(node);
 		parsenode.body = body;
 		sliced.parsednode = parsenode;

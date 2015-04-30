@@ -400,7 +400,49 @@ var handlerTransform = (function () {
 	};
 
 
+	var extractUseHandlerAnnotation = function(lastParent, comment){
+		var regexp = Handler.handlerUseRegExp;
+		var annotations = [];
+
+		if (comment.search(regexp) >= 0) {
+			var match = regexp.exec(comment);
+			while (match != null) {
+				Handler.handlerCtr++;
+				var m = match[1];
+				var priority = false;
+				if (m.substr(0, 1) === Handler.prioritySign) {
+					priority = true;
+					m = m.substr(1, m.length);
+				}
+
+				var currentName = m + Handler.handlerCtr;
+
+				var annotationInfo = {
+					parent: currentName,
+					uniqueName: currentName,
+					handler: m,
+					rpcCount: 0,
+					priority: priority,
+					leafName: Handler.Generate.makeLeafName(currentName)
+				}
+
+				if (lastParent) {
+					//last one added is our parent
+					annotationInfo.parent = lastParent.uniqueName;
+				}
+
+				annotations.push(annotationInfo);
+				lastParent = annotationInfo;
+				match = regexp.exec(comment);
+			}
+		}
+
+		return annotations;
+	};
+
+
 	module.extractHandler = extractHandlerObject;
+	module.extractUseHandlerAnnotation = extractUseHandlerAnnotation;
 
 
 	return module;

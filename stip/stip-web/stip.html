@@ -105,7 +105,7 @@
 			// First parse and create again via escodegen
 			ast = Ast.createAst(src, {loc:true, owningComments: true, comment: true});
 
-			Handler.defined = Handler.Predefined.predefinedHandlers();
+			Handler.init();
 
 			/* Pre analysis step */
       		var preanalysis = pre_analyse(ast);

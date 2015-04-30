@@ -107,6 +107,9 @@ var NodeParse = (function () {
                         this.callback = cb;
                     }
                   },
+                  setObjectName: function (name) {
+                     this.parsenode.expression.callee.object.name = name
+                  },
                   setName : function (name) {
                     this.parsenode.expression.arguments[0].value = name
                   },

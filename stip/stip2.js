@@ -105,7 +105,7 @@ var Stip = (function () {
 	 *  https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Parser_API#Statements
 	 */
 
-	 var ctr = 0;
+
 	/* BLOCK STATEMENT:
 	 * Consists of several statements surrounded by corresponding 
 	 * push and pop body edges */
@@ -123,40 +123,10 @@ var Stip = (function () {
 		}
 
 		if (isUseHandlerAnnotatedNode(node)) {
-			var regexp = Handler.handlerUseRegExp;
-			var comment = node.leadingComment.value;
 
-			if (comment.search(regexp) >= 0) {
-				match = regexp.exec(comment);
-				while (match != null) {
-					ctr++;
-					var m = match[1];
-					var priority = false;
-					if (m.substr(0, 1) === Handler.prioritySign) {
-						priority = true;
-						m = m.substr(1, m.length);
-					}
-
-					var currentName = m + ctr;
-
-					var annotationInfo = {
-						parent: currentName,
-						uniqueName: currentName,
-						handler: m,
-						rpcCount: 0,
-						priority: priority,
-						leafName: Handler.Generate.makeLeafName(currentName)
-					}
-
-					if (new_entry.handlerScope.length !== 0) {
-						//last one added is our parent
-						annotationInfo.parent = new_entry.handlerScope[new_entry.handlerScope.length - 1].uniqueName;
-					}
-
-					new_entry.handlerScope.push(annotationInfo);
-					match = regexp.exec(comment);
-				}
-			};
+			var lastParent = (new_entry.handlerScope.length === 0) ? undefined : new_entry.handlerScope[new_entry.handlerScope.length - 1];
+			var handlers = Handler.Transform.extractUseHandlerAnnotation(lastParent, node.leadingComment.value);
+			new_entry.handlerScope = new_entry.handlerScope.concat(handlers);
 		}
 
 		PDG.ent_index++;

@@ -40,7 +40,6 @@ var addHeader = function (option, sliced) {
 	}
 
 	if (option.asynccomm === 'callbacks' && option.target === 'node.js') {
-		
 		var handlers      = [];
 		var proxies       = [];
 		var totalRpcCount = 0;
@@ -137,6 +136,7 @@ var constructProgram = function (nodes, option) {
 		var n = nodes.shift();
 		if(n.parsenode) {
 			slicing = toCode(option, nodes, n);
+			
 			if(slicing.parsednode) {
 				program.body = program.body.concat(slicing.parsednode);
 			}

@@ -38,7 +38,6 @@ var CPSTransform = (function () {
 			}
 			call.handlerScope[call.handlerScope.length - 1].rpcCount++;
 
-			console.log('MAKING RPC FOR', call.name, call, asyncCall.parsenode)
 		}    
 
 		/* Add original arguments to async call */
