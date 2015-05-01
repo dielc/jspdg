@@ -9,7 +9,6 @@ var Handler = (function () {
 	var handlerContext   = 'ctxt';
 	var prioritySign     = '+';
 	var annotationRegExp = /[\,\s]+([+]?[a-zA-Z_$]{1}[a-zA-Z0-9_$]*)/g;
-	var finalParentName  = 'TopNode';
 
 	var generate   = handlerGenerate();
 	var transform  = handlerTransform();
@@ -28,7 +27,6 @@ var Handler = (function () {
 	module.handlerMethods   = handlerMethods;
 	module.prioritySign     = prioritySign;
 	module.handlerUseRegExp = annotationRegExp;
-	module.finalParentName  = finalParentName;
 	module.handlerContext   = handlerContext;
 
 	module.Generate   = generate;

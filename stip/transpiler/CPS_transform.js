@@ -30,7 +30,7 @@ var CPSTransform = (function () {
 		   	datadep = [],
 		    datadeps, calldeps, vardecls, parsednode, transformargs, bodynode;
 
-		if (call.handlerScope.length != 0) {
+		if (call.handlerScope && call.handlerScope.length != 0) {
 			
 			if (asyncCall.setObjectName) {
 				var proxyName = Handler.Generate.makeProxyName(call.handlerScope[call.handlerScope.length - 1].uniqueName);

@@ -290,17 +290,18 @@ var handlerTransform = (function () {
 			//keep the current handler info accessible as annotations in code will decide where
 			//constructorBody and the methods will end up.
 			make: function (handlerName, parentNodeName, hasPriority, methods, body) {
-				methods = methods || this.handlerMethods;
-				body = body || this.constructorBody;
+				var handler = [];
 
-				var handler = [
-					createConstructor(handlerName, body),
-					createSuperMethod(handlerName, parentNodeName),
-					createPriorityMethod(handlerName, hasPriority),
-					createSetPrototype(handlerName),
-					createSetConstructor(handlerName),
-					createToStringMethod(handlerName)
-				];
+				methods = methods || this.handlerMethods;
+				body    = body || this.constructorBody;
+
+				handler.push(createConstructor(handlerName, body));
+				if(parentNodeName) 
+					handler.push(createSuperMethod(handlerName, parentNodeName));
+				handler.push(createPriorityMethod(handlerName, hasPriority));
+				handler.push(createSetPrototype(handlerName));
+				handler.push(createSetConstructor(handlerName));
+				handler.push(createToStringMethod(handlerName));
 
 				methods.map(function (method) {
 					handler.push(method(handlerName));

@@ -12,7 +12,7 @@ var handlerGenerate = (function () {
 	};
 
 	var handlerProxySetup = function () {
-		return esprima.parse('var fp = makeFailureProxy(myClient, adapter);').body[0];
+		return esprima.parse('var fp = makeFailureProxy(client, adapter);').body[0];
 	};
 
 	var handlerProxyDefinition = function (name, handler) {
@@ -49,8 +49,8 @@ var handlerGenerate = (function () {
 			priority   = current.priority,
 			rpcCount   = current.rpcCount;
 
-		if (parent === uniqueName) { //topnode
-			parent = Handler.Transform.finalParentName;
+		if (parent === uniqueName) { //top node
+			parent = undefined;
 		}
 
 		var handlerDef = Handler.defined[handlerName];
