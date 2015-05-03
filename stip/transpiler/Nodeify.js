@@ -280,9 +280,9 @@ var Nodeify = (function () {
 			var toSlice = cloneSliced(sliced, sliced.nodes, n);
 			var bodynode = toNode(toSlice);
 
-			if (bodynode.node.handlerScope) {
-				bodynode.node.handlerScope = bodynode.failureHandlers.concat(bodynode.node.handlerScope)
-				bodynode.node.handlerScope.map(function (el) {
+			if (bodynode.node.handlers) {
+				bodynode.node.handlers = bodynode.failureHandlers.concat(bodynode.node.handlers)
+				bodynode.node.handlers.map(function (el) {
 					if (sliced.failureHandlers.indexOf(el) === -1) {
 						sliced.failureHandlers.push(el);
 					}
@@ -296,7 +296,7 @@ var Nodeify = (function () {
 			sliced.methods = bodynode.methods;
 			});
 
-		node.handlerScope.map(function (el) {
+		node.handlers.map(function (el) {
 			if (sliced.failureHandlers.indexOf(el) === -1)
 				sliced.failureHandlers.push(el)
 		})

@@ -43,20 +43,20 @@ PDG.prototype.addNode = function (node) {
   		this.nodes.push(node);
 }
 
-PDG.prototype.makeStm = function (node) {
-	return new StatementNode(++this.stm_index, node);
+PDG.prototype.makeStm = function (node, upnode) {
+	return new StatementNode(++this.stm_index, node, upnode);
 }
 
 PDG.prototype.decrStm = function () {
 	this.stm_index--;
 }
 
-PDG.prototype.makeCall = function (node) {
-	return new CallNode(++this.cal_index, node);
+PDG.prototype.makeCall = function (node, upnode) {
+	return new CallNode(++this.cal_index, node, upnode);
 }
 
-PDG.prototype.makeProEntry = function (node) {
-	return new ProEntryNode(++this.pro_index, node);
+PDG.prototype.makeProEntry = function (node, upnode) {
+	return new ProEntryNode(++this.pro_index, node, upnode);
 }
 
 PDG.prototype.changeEntry = function (node) {

@@ -23,20 +23,20 @@ var CPSTransform = (function () {
 			actual_ins  = call.getActualIn(),
 		    parent 		= Ast.parent(call.parsenode, transform.AST),
 		    callargs    = actual_ins.flatMap(function (a_in) {
-							return a_in.callArgument()		
+		    				return a_in.callArgument();	
 						}),
 		    orig_esp_exp = esp_exp,
 		    callbackstms = [],
 		   	datadep = [],
 		    datadeps, calldeps, vardecls, parsednode, transformargs, bodynode;
-
-		if (call.handlerScope && call.handlerScope.length != 0) {
+;
+		if (call.handlers && call.handlers.length != 0) {
 			
 			if (asyncCall.setObjectName) {
-				var proxyName = Handler.Generate.makeProxyName(call.handlerScope[call.handlerScope.length - 1].uniqueName);
+				var proxyName = Handler.Generate.makeProxyName(call.handlers[call.handlers.length - 1].uniqueName);
 				asyncCall.setObjectName(proxyName);
 			}
-			call.handlerScope[call.handlerScope.length - 1].rpcCount++;
+			call.handlers[call.handlers.length - 1].rpcCount++;
 
 		}    
 
