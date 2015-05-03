@@ -12,7 +12,7 @@ var handlerGenerate = (function () {
 	};
 
 	var handlerProxySetup = function () {
-		return esprima.parse('var fp = makeFailureProxy(client, adapter);').body[0];
+		return esprima.parse('var fp = makeFailureProxy(client);').body[0];
 	};
 
 	var handlerProxyDefinition = function (name, handler) {
