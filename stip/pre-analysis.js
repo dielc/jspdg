@@ -1,60 +1,60 @@
 var pre_analyse = function (ast) {
-	var anonf_ct   = 0;
-	var anonf_name = 'anonf';
-	var anonfs     = [];
-	var decl       = [];
-	var calls      = [];
-	var assumes    = [];
+    var anonf_ct = 0;
+    var anonf_name = 'anonf';
+    var anonfs = [];
+    var decl = [];
+    var calls = [];
+    var assumes = [];
+    var comments = [];
     var defhandlers = Handler.defined;
-	var comments = [];
 
-	var function_args = function (callnode) {
-		return callnode.arguments.filter(function (arg) {
-			return arg.type === "FunctionExpression"
-		}) 
-	}
- 	
- 	var createIdentifier = function (id) {
- 		return {type:'Identifier', name:id};
- 	}
+    var function_args = function (callnode) {
+        return callnode.arguments.filter(function (arg) {
+            return arg.type === "FunctionExpression"
+        }) 
+    }
+    
+    var createIdentifier = function (id) {
+        return {type:'Identifier', name:id};
+    }
 
- 	var createDeclaration = function (id) {
- 		return { type:'VariableDeclaration', 
- 				declarations: [{
- 					type:'VariableDeclarator',
- 					id: createIdentifier(id),
- 					init: null
- 				}],
- 				kind:'var'
- 			}
- 	}
+    var createDeclaration = function (id) {
+        return { type:'VariableDeclaration', 
+                declarations: [{
+                    type:'VariableDeclarator',
+                    id: createIdentifier(id),
+                    init: null
+                }],
+                kind:'var'
+            }
+    }
 
- 	var createFunction = function (arg, id) {
- 		return { 	
- 			type:"ExpressionStatement",
- 			expression: {
- 				type: "AssignmentExpression",
- 				operator: "=",
- 				left: createIdentifier(id),
- 				right: arg
- 			}
- 		}
- 	}
+    var createFunction = function (arg, id) {
+        return {    
+            type:"ExpressionStatement",
+            expression: {
+                type: "AssignmentExpression",
+                operator: "=",
+                left: createIdentifier(id),
+                right: arg
+            }
+        }
+    }
 
- 	var createReturnValue = function (type) {
- 		switch (type) {
-      		case "Num": 
-      			return  {
+    var createReturnValue = function (type) {
+        switch (type) {
+            case "Num": 
+                return  {
                             "type": "Literal",
                             "value": 0
                         }
-      		case "String":
-      			return  {
+            case "String":
+                return  {
                             "type": "Literal",
                             "value": ""
                         }
-      		case "Bool":
-      			return  {
+            case "Bool":
+                return  {
                             "type": "Literal",
                             "value": true,
                         }
@@ -64,13 +64,13 @@ var pre_analyse = function (ast) {
                             "properties": []
                        }
             default:
-            	return null
+                return null
             }
 
- 	}
+    }
 
- 	var createFunExp = function (id, args, returntype) {
- 		return {
+    var createFunExp = function (id, args, returntype) {
+        return {
             type: "VariableDeclaration",
             declarations: [
                 {
