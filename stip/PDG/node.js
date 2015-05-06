@@ -213,7 +213,7 @@ PDG_Node.prototype.dataDependentNodes = function(crossTier, includeActualP) {
 }
 
 /* Entry nodes, denoted by "e+index". (Entry) */
-var EntryNode = function (id,parsenode, upnode) {
+var EntryNode = function (id, parsenode) {
   PDG_Node.call(this,'e'+id);
   this.parsenode     = parsenode;
   this.isEntryNode   = true;
@@ -221,7 +221,6 @@ var EntryNode = function (id,parsenode, upnode) {
   this.clientCalls   = 0;
   this.serverCalls   = 0;
   this.isConstructor = false;
-  this.handlers  = (upnode && upnode.handlers) ? upnode.handlers.slice() : [];
 }
 
 EntryNode.prototype = new PDG_Node();
@@ -293,13 +292,10 @@ ObjectEntryNode.prototype.addMember = function (name, member) {
 
 
 /* Call nodes, denoted by "c+index". (Call) */
-var CallNode = function (id, parsenode, upnode) {
+var CallNode = function (id, parsenode) {
   PDG_Node.call(this, 'c'+id);
-
   this.parsenode  = parsenode;
   this.isCallNode = true;
-  this.handlers   = (upnode && upnode.handlers) ? upnode.handlers.slice() : [];
-
 }
 
 CallNode.prototype = new PDG_Node();
@@ -356,11 +352,10 @@ CallNode.prototype.getStmNode = function () {
 }
 
 /* Statement nodes, denoted by "s+index". (Statement) */
-var StatementNode = function (id, parsenode, upnode) {
+var StatementNode = function (id, parsenode) {
   PDG_Node.call(this, 's'+id);
   this.parsenode       = parsenode;
   this.isStatementNode = true;
-  this.handlers    = (upnode && upnode.handlers) ? upnode.handlers.slice() : [];
 }
 
 StatementNode.prototype = new PDG_Node(); 
@@ -368,26 +363,23 @@ StatementNode.prototype = new PDG_Node();
 
 /* Formal parameters (formal in and formal out)
  * id + direction. 1 = formal in, -1 = formal out */
-var FormalPNode = function (id, name, direction, upnode) {
+var FormalPNode = function (id, name, direction) {
   PDG_Node.call(this, 'f'+id+'_'+ (direction == 1 ? 'in' : 'out'));
   this.direction    = direction;
   this.name         = name;
   this.isFormalNode = true;
-  this.handlers     = (upnode && upnode.handlers) ? upnode.handlers.slice() : [];
 }
 
 FormalPNode.prototype = new PDG_Node();
 
 // Actual paramaters (actual in and actual out)
 // id + direction. 1 = actual in, -1 = actual out
-ActualPNode = function (id, direction, upnode, parsenode, value) {
+ActualPNode = function (id, direction, parsenode, value) {
   PDG_Node.call(this, 'a'+id+'_'+ (direction == 1 ? 'in' : 'out'));
   this.direction     = direction;
   this.isActualPNode = true;
   this.parsenode     = parsenode;
   this.value         = value;
-  this.handlers      = (upnode && upnode.handlers) ? upnode.handlers.slice() : [];
-
 }
 
 ActualPNode.prototype = new PDG_Node();

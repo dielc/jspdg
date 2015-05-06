@@ -162,7 +162,7 @@ var pre_analyse = function (ast) {
                 }
             }
 
-            if (esp_isVarDecl(node) && isDefineHandlerAnnotated(parent)) {
+            if (esp_isVarDecl(node) && Comments.isDefineHandlerAnnotated(parent)) {
 
                 node.declarations.map(function (el) {
                     if (esp_isObjExp(el.init)) {
@@ -178,7 +178,7 @@ var pre_analyse = function (ast) {
         },
         leave: function (node, parent) {
             
-            if (esp_isBlockStm(node) && isDefineHandlerAnnotated(node))
+            if (esp_isBlockStm(node) && Comments.isDefineHandlerAnnotated(node))
                 this.remove();
 
         }

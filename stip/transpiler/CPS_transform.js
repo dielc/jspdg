@@ -30,13 +30,13 @@ var CPSTransform = (function () {
             datadep = [],
             datadeps, calldeps, vardecls, parsednode, transformargs, bodynode;
 
-        if (call.handlers && call.handlers.length != 0) {
+        if (call.parsenode.handlers && call.parsenode.handlers.length != 0) {
 			
 			if (asyncCall.setObjectName) {
-				var proxyName = Handler.Generate.makeProxyName(call.handlers[call.handlers.length - 1].uniqueName);
+				var proxyName = Handler.Generate.makeProxyName(call.parsenode.handlers[call.parsenode.handlers.length - 1].uniqueName);
 				asyncCall.setObjectName(proxyName);
 			}
-			call.handlers[call.handlers.length - 1].rpcCount++;
+			call.parsenode.handlers[call.parsenode.handlers.length - 1].rpcCount++;
 
 		}    
 

@@ -2,8 +2,7 @@
  * Works on the level of esprima nodes
  */
 
-var use_handler_annotation    = "@useHandler";
-var define_handler_annotation = "@defineHandlers";
+
 
 var Comments = (function () {
 
@@ -12,9 +11,11 @@ var Comments = (function () {
     var handlers = [];
 
     // Client
-    var client_annotation = "@client";
-    var server_annotation = "@server";
-    var assumes_annotation = "@assumes";
+    var client_annotation      = "@client";
+    var server_annotation      = "@server";
+    var assumes_annotation     = "@assumes";
+    var use_handler_annotation = "@useHandler";
+	var define_handler_annotation = "@defineHandlers";
     
 
     // Client annotations is @client in comment
@@ -31,6 +32,14 @@ var Comments = (function () {
     	return string.indexOf(assumes_annotation) != -1;
     }
 
+    var isUseHandlerAnnotated = function (comment) {
+		return comment.value.indexOf(use_handler_annotation) != -1;
+	};
+
+	var isDefineHandlerAnnotated = function (node) {
+		return node.leadingComment && node.leadingComment.value.indexOf(define_handler_annotation) != -1;
+	};
+
     var isTierAnnotated = function (node) {
         return node.leadingComment &&
                esp_isBlockStm(node) &&
@@ -39,18 +48,18 @@ var Comments = (function () {
     }
 
     var registerHandler = function (handler) {
-        handlers.push(handler)
+        handlers.push(handler);
     }
     
-    var handleComment = function (comment, pdgNode) {
-        handlers.map(function (handler) {
-            handler(comment, pdgNode)
-        })
+    var handleComment = function (node, pdgNode, upnode) {
+    	handlers.map(function (handler) {
+	        handler(node.leadingComment, pdgNode, upnode, node)
+	    });
     }
-
 
     var handleBlockComment = function (comment, pdgNodes) {
         pdgNodes.map(function (pdgNode) {
+        	//console.log('handleBlockComment', comment.value)
             if (esp_isBlockStm(pdgNode.parsenode)) {
                 if (isClientAnnotated(comment)) 
                     graphs.PDG.addClientStm(pdgNode)
@@ -60,22 +69,31 @@ var Comments = (function () {
         })
     }
 
+
+    var handleUseHandler = function (comment, pdgNodes, upnode, node) {
+
+    	pdgNodes.map(function (pdgNode) {
+
+    		if (esp_isBlockStm(pdgNode.parsenode) && isUseHandlerAnnotated(comment)) {
+    			if(!node.handlers){
+    				node.handlers = []
+    			}
+			}
+    	})
+    };
+
     registerHandler(handleBlockComment);
+    //registerHandler(handleUseHandler);
 
     module.handleComment      = handleComment;
     module.registerHandler    = registerHandler;
     module.isAssumesAnnotated = isAssumesAnnotated;
     module.isTierAnnotated    = isTierAnnotated;
+    module.isUseHandlerAnnotated = isUseHandlerAnnotated;
+    module.isDefineHandlerAnnotated = isDefineHandlerAnnotated;
 
     return module
 
 
 })()
 
-var isUseHandlerAnnotatedNode = function (node) {
-	return node.leadingComment && node.leadingComment.value.indexOf(use_handler_annotation) != -1;
-};
-
-var isDefineHandlerAnnotated = function (node) {
-	return node.leadingComment && node.leadingComment.value.indexOf(define_handler_annotation) != -1;
-};
