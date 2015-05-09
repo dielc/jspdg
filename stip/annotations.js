@@ -8,7 +8,8 @@ var Comments = (function () {
 
     var module = {};
 
-    var handlers = [];
+    var beforeHandlers = [];
+    var afterHandlers  = [];
 
     // Client
     var client_annotation      = "@client";
@@ -47,19 +48,29 @@ var Comments = (function () {
                 isClientAnnotated(node.leadingComment))
     }
 
-    var registerHandler = function (handler) {
-        handlers.push(handler);
+    var registerBeforeHandler = function (handler) {
+        beforeHandlers.push(handler)
+    }
+
+    var registerAfterHandler = function (handler) {
+        afterHandlers.push(handler)
     }
     
-    var handleComment = function (node, pdgNode, upnode) {
-    	handlers.map(function (handler) {
-	        handler(node.leadingComment, pdgNode, upnode, node)
-	    });
+    /*  Before handlers are called right before the parsenode is turned into a pdg node */
+    var handleBeforeComment = function (comment, parsenode, upnode) {
+        beforeHandlers.map(function (handler) {
+            handler(comment, parsenode, upnode)
+        })
+    }
+
+    var handleAfterComment = function (comment, pdgNode, upnode) {
+        afterHandlers.map(function (handler) {
+            handler(comment, pdgNode, upnode)
+        })
     }
 
     var handleBlockComment = function (comment, pdgNodes) {
         pdgNodes.map(function (pdgNode) {
-        	//console.log('handleBlockComment', comment.value)
             if (esp_isBlockStm(pdgNode.parsenode)) {
                 if (isClientAnnotated(comment)) 
                     graphs.PDG.addClientStm(pdgNode)
@@ -69,27 +80,24 @@ var Comments = (function () {
         })
     }
 
-
-    var handleUseHandler = function (comment, pdgNodes, upnode, node) {
-
-    	pdgNodes.map(function (pdgNode) {
-
-    		if (esp_isBlockStm(pdgNode.parsenode) && isUseHandlerAnnotated(comment)) {
-    			if(!node.handlers){
-    				node.handlers = []
-    			}
-			}
-    	})
+    var handleUseHandler = function (comment, parsenode, upnode) {
+        var node = parsenode,
+        	handlerCtr = node.handlers.length,
+        	lastParent = (handlerCtr === 0) ? undefined : node.handlers[handlerCtr - 1];
+		
+		var extraHandlers = Handler.Transform.HandlerAnnotation(lastParent, comment.value);
+		node.handlers = node.handlers.concat(extraHandlers);	
     };
 
-    registerHandler(handleBlockComment);
-    //registerHandler(handleUseHandler);
+    registerAfterHandler(handleBlockComment);
+    registerBeforeHandler(handleUseHandler);
 
-    module.handleComment      = handleComment;
-    module.registerHandler    = registerHandler;
-    module.isAssumesAnnotated = isAssumesAnnotated;
-    module.isTierAnnotated    = isTierAnnotated;
-    module.isUseHandlerAnnotated = isUseHandlerAnnotated;
+    module.handleBeforeComment      = handleBeforeComment;
+    module.handleAfterComment       = handleAfterComment;
+    module.registerBeforeHandler    = registerBeforeHandler;
+    module.registerAfterHandler     = registerAfterHandler;
+    module.isAssumesAnnotated       = isAssumesAnnotated;
+    module.isTierAnnotated          = isTierAnnotated;
     module.isDefineHandlerAnnotated = isDefineHandlerAnnotated;
 
     return module

@@ -62,10 +62,12 @@ var Nodeify = (function () {
             transformer = makeTransformer(sliced.option);
         if (esp_isVarDeclarator(node.parsenode))
             node.parsenode = NodeParse.createVarDecl(node.parsenode);
+
         /* Outgoing data dependency to entry node? -> Function Declaration */
         if (entry.length > 0) {
             var entry = entry[0].to,
-                f     = toNode(cloneSliced(sliced, slicedn, entry));
+                f     = toNode(cloneSliced(sliced, slicedn, entry)); 
+
             if (entry.isServerNode() && entry.clientCalls > 0) {
                 /* set the name of the method */
                 f.method.setName(node.parsenode.declarations[0].id);
@@ -142,6 +144,7 @@ var Nodeify = (function () {
         /* nodeify every body node */
         bodynodes.map(function (n) {
             var bodynode = toNode(cloneSliced(sliced, sliced.nodes, n));
+
             if(slicedContains(sliced.nodes,n)) 
                 body = body.concat(bodynode.parsednode);
             sliced.nodes = removeNode(bodynode.nodes,n);
@@ -277,29 +280,13 @@ var Nodeify = (function () {
         bodynodes.map(function (n) {
             var toSlice = cloneSliced(sliced, sliced.nodes, n);
             var bodynode = toNode(toSlice);
-            
-            var p = bodynode.node.parsenode;
-            if (p.handlers) {
-				p.handlers = bodynode.failureHandlers.concat(p.handlers)
-				p.handlers.map(function (el) {
-					if (sliced.failureHandlers.indexOf(el) === -1) {
-						sliced.failureHandlers.push(el);
-					}
-				});
-			}
 
             if( slicedContains(sliced.nodes, n) ) {
                     body = body.concat(bodynode.parsednode)
             }
             sliced.nodes = removeNode(bodynode.nodes,n);    
             sliced.methods = bodynode.methods;
-            });
-
-        if(parsenode.handlers)
-	        parsenode.handlers.map(function (el) {
-				if (sliced.failureHandlers.indexOf(el) === -1)
-					sliced.failureHandlers.push(el)
-			})
+        });
 
         sliced.nodes = sliced.nodes.remove(node);
         parsenode.body = body;
@@ -365,6 +352,7 @@ var Nodeify = (function () {
             return sliced;
         }
         console.log("NODE("+node.parsenode.type+") " + node.parsenode);
+
         switch (node.parsenode.type) {
           case 'VariableDeclarator': 
             return nodeifyVarDecl(sliced);
@@ -383,14 +371,13 @@ var Nodeify = (function () {
                 return nodeifyVarDecl(sliced)
             if(esp_isExpStm(node.parsenode) && esp_isBinExp(node.parsenode.expression))
                 return nodeifyBinExp(sliced)
-            if (esp_isExpStm(node.parsenode) && esp_isCallExp(node.parsenode.expression)) {
+            if (esp_isExpStm(node.parsenode) && esp_isCallExp(node.parsenode.expression)){
                 sliced.node.parsenode = node.parsenode.expression;
                 return nodeifyCallExp(sliced);
             }
-            //CTTransform.transformExpression(node, sliced.cloudtypes)
-            sliced.parsednode = node.parsenode;
-            return sliced;
-          
+        	//CTTransform.transformExpression(node, sliced.cloudtypes)
+        	sliced.parsednode = node.parsenode;
+        	return sliced;
         }
     }
 

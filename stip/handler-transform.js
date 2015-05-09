@@ -1,450 +1,474 @@
 'use strict';
 
-var handlerTransform = (function () {
+var handlerTransform = (function() {
 
-	var module = {};
+    var module = {};
 
+    var renameIdentifier = function(identifier, string) {
+        return identifier + string;
+    };
 
-	var createBlockStatement = function (body) {
-		return {
-			type: 'BlockStatement',
-			body: body
-		}
-	};
+    var createBlockStatement = function(body) {
+        return {
+            type: 'BlockStatement',
+            body: body
+        }
+    };
 
-	var createField = function (fieldName, rhs) {
-		return {
-			'type': 'ExpressionStatement',
-			'expression': {
-				'type': 'AssignmentExpression',
-				'operator': '=',
-				'left': {
-					'type': 'MemberExpression',
-					'computed': false,
-					'object': {
-						'type': 'ThisExpression'
-					},
-					'property': {
-						'type': 'Identifier',
-						'name': fieldName
-					}
-				},
-				'right': rhs
-			}
-		}
-	};
+    var createField = function(fieldName, rhs) {
+        return function(name) {
+            var newName = renameIdentifier(fieldName, name) || fieldName;
+            return {
+                'type': 'ExpressionStatement',
+                'expression': {
+                    'type': 'AssignmentExpression',
+                    'operator': '=',
+                    'left': {
+                        'type': 'MemberExpression',
+                        'computed': false,
+                        'object': {
+                            'type': 'ThisExpression'
+                        },
+                        'property': {
+                            'type': 'Identifier',
+                            'name': newName
+                        }
+                    },
+                    'right': JSON.parse(JSON.stringify(rhs))
+                }
+            }
+        };
+    };
 
-	var createMethod = function (methodName, functionExpressionNode) {
-		return function (objectName) {
-			return {
-				'type': 'ExpressionStatement',
-				'expression': {
-					'type': 'AssignmentExpression',
-					'operator': '=',
-					'left': {
-						'type': 'MemberExpression',
-						'computed': false,
-						'object': {
-							'type': 'Identifier',
-							'name': objectName
-						},
-						'property': {
-							'type': 'Identifier',
-							'name': methodName
-						}
-					},
-					'right': functionExpressionNode
-				}
-			};
-		}
-	};
+    var createMethod = function(methodName, functionExpressionNode) {
+        return function(objectName) {
+            return {
+                'type': 'ExpressionStatement',
+                'expression': {
+                    'type': 'AssignmentExpression',
+                    'operator': '=',
+                    'left': {
+                        'type': 'MemberExpression',
+                        'computed': false,
+                        'object': {
+                            'type': 'Identifier',
+                            'name': objectName
+                        },
+                        'property': {
+                            'type': 'Identifier',
+                            'name': methodName
+                        }
+                    },
+                    'right': JSON.parse(JSON.stringify(functionExpressionNode))
+                }
+            }
+        };
+    };
 
-	var createConstructor = function (constructorName, bodyNode) {
-		return {
-			'type': 'VariableDeclaration',
-			'declarations': [{
-				'type': 'VariableDeclarator',
-				'id': {
-					'type': 'Identifier',
-					'name': constructorName
-				},
-				'init': {
-					'type': 'FunctionExpression',
-					'id': null,
-					'params': [],
-					'defaults': [],
-					'body': {
-						'type': 'BlockStatement',
-						'body': bodyNode
-					},
-					'generator': false,
-					'expression': false
-				}
-			}],
-			'kind': 'var'
-		}
-	};
+    var createConstructor = function(constructorName, bodyNode) {
+        return {
+            'type': 'VariableDeclaration',
+            'declarations': [{
+                'type': 'VariableDeclarator',
+                'id': {
+                    'type': 'Identifier',
+                    'name': constructorName
+                },
+                'init': {
+                    'type': 'FunctionExpression',
+                    'id': null,
+                    'params': [],
+                    'defaults': [],
+                    'body': {
+                        'type': 'BlockStatement',
+                        'body': JSON.parse(JSON.stringify(bodyNode))
+                    },
+                    'generator': false,
+                    'expression': false
+                }
+            }],
+            'kind': 'var'
+        }
+    };
 
-	var createSuperMethod = function (objectName, parentNodeName) {
-		return {
-			'type': 'ExpressionStatement',
-			'expression': {
-				'type': 'AssignmentExpression',
-				'operator': '=',
-				'left': {
-					'type': 'MemberExpression',
-					'computed': false,
-					'object': {
-						'type': 'Identifier',
-						'name': objectName
-					},
-					'property': {
-						'type': 'Identifier',
-						'name': 'super'
-					}
-				},
-				'right': {
-					'type': 'FunctionExpression',
-					'id': null,
-					'params': [{
-						'type': 'Identifier',
-						'name': 'target'
-					}],
-					'defaults': [],
-					'body': {
-						'type': 'BlockStatement',
-						'body': [{
-							'type': 'ExpressionStatement',
-							'expression': {
-								'type': 'CallExpression',
-								'callee': {
-									'type': 'MemberExpression',
-									'computed': false,
-									'object': {
-										'type': 'Identifier',
-										'name': 'target'
-									},
-									'property': {
-										'type': 'Identifier',
-										'name': 'handleException'
-									}
-								},
-								'arguments': [{
-									'type': 'Identifier',
-									'name': parentNodeName
-								}]
-							}
-						}]
-					},
-					'generator': false,
-					'expression': false
-				}
-			}
-		}
-	};
+    var createSuperMethod = function(objectName, parentNodeName) {
+        return {
+            'type': 'ExpressionStatement',
+            'expression': {
+                'type': 'AssignmentExpression',
+                'operator': '=',
+                'left': {
+                    'type': 'MemberExpression',
+                    'computed': false,
+                    'object': {
+                        'type': 'Identifier',
+                        'name': objectName
+                    },
+                    'property': {
+                        'type': 'Identifier',
+                        'name': 'super'
+                    }
+                },
+                'right': {
+                    'type': 'FunctionExpression',
+                    'id': null,
+                    'params': [{
+                        'type': 'Identifier',
+                        'name': 'target'
+                    }],
+                    'defaults': [],
+                    'body': {
+                        'type': 'BlockStatement',
+                        'body': [{
+                            'type': 'ExpressionStatement',
+                            'expression': {
+                                'type': 'CallExpression',
+                                'callee': {
+                                    'type': 'MemberExpression',
+                                    'computed': false,
+                                    'object': {
+                                        'type': 'Identifier',
+                                        'name': 'target'
+                                    },
+                                    'property': {
+                                        'type': 'Identifier',
+                                        'name': 'handleException'
+                                    }
+                                },
+                                'arguments': [{
+                                    'type': 'Identifier',
+                                    'name': parentNodeName
+                                }]
+                            }
+                        }]
+                    },
+                    'generator': false,
+                    'expression': false
+                }
+            }
+        }
+    };
 
-	var createPriorityMethod = function (objectName, hasPriority) {
-		return {
-			'type': 'ExpressionStatement',
-			'expression': {
-				'type': 'AssignmentExpression',
-				'operator': '=',
-				'left': {
-					'type': 'MemberExpression',
-					'computed': false,
-					'object': {
-						'type': 'Identifier',
-						'name': objectName
-					},
-					'property': {
-						'type': 'Identifier',
-						'name': 'flagPriority'
-					}
-				},
-				'right': {
-					'type': 'Literal',
-					'value': hasPriority,
-					'raw': hasPriority.toString()
-				}
-			}
-		}
-	};
+    var createPriorityMethod = function(objectName, hasPriority) {
+        return {
+            'type': 'ExpressionStatement',
+            'expression': {
+                'type': 'AssignmentExpression',
+                'operator': '=',
+                'left': {
+                    'type': 'MemberExpression',
+                    'computed': false,
+                    'object': {
+                        'type': 'Identifier',
+                        'name': objectName
+                    },
+                    'property': {
+                        'type': 'Identifier',
+                        'name': 'flagPriority'
+                    }
+                },
+                'right': {
+                    'type': 'Literal',
+                    'value': hasPriority,
+                    'raw': hasPriority.toString()
+                }
+            }
+        }
+    };
 
-	var createSetPrototype = function (objectName) {
-		return {
-			'type': 'ExpressionStatement',
-			'expression': {
-				'type': 'AssignmentExpression',
-				'operator': '=',
-				'left': {
-					'type': 'MemberExpression',
-					'computed': false,
-					'object': {
-						'type': 'Identifier',
-						'name': objectName
-					},
-					'property': {
-						'type': 'Identifier',
-						'name': 'prototype'
-					}
-				},
-				'right': {
-					'type': 'NewExpression',
-					'callee': {
-						'type': 'Identifier',
-						'name': 'HandlerNode'
-					},
-					'arguments': []
-				}
-			}
-		}
-	};
+    var createSetPrototype = function(objectName) {
+        return {
+            'type': 'ExpressionStatement',
+            'expression': {
+                'type': 'AssignmentExpression',
+                'operator': '=',
+                'left': {
+                    'type': 'MemberExpression',
+                    'computed': false,
+                    'object': {
+                        'type': 'Identifier',
+                        'name': objectName
+                    },
+                    'property': {
+                        'type': 'Identifier',
+                        'name': 'prototype'
+                    }
+                },
+                'right': {
+                    'type': 'NewExpression',
+                    'callee': {
+                        'type': 'Identifier',
+                        'name': 'HandlerNode'
+                    },
+                    'arguments': []
+                }
+            }
+        }
+    };
 
-	var createSetConstructor = function (objectName) {
-		return {
-			'type': 'ExpressionStatement',
-			'expression': {
-				'type': 'AssignmentExpression',
-				'operator': '=',
-				'left': {
-					'type': 'MemberExpression',
-					'computed': false,
-					'object': {
-						'type': 'MemberExpression',
-						'computed': false,
-						'object': {
-							'type': 'Identifier',
-							'name': objectName
-						},
-						'property': {
-							'type': 'Identifier',
-							'name': 'prototype'
-						}
-					},
-					'property': {
-						'type': 'Identifier',
-						'name': 'constructor'
-					}
-				},
-				'right': {
-					'type': 'Identifier',
-					'name': objectName
-				}
-			}
-		}
-	};
+    var createSetConstructor = function(objectName) {
+        return {
+            'type': 'ExpressionStatement',
+            'expression': {
+                'type': 'AssignmentExpression',
+                'operator': '=',
+                'left': {
+                    'type': 'MemberExpression',
+                    'computed': false,
+                    'object': {
+                        'type': 'MemberExpression',
+                        'computed': false,
+                        'object': {
+                            'type': 'Identifier',
+                            'name': objectName
+                        },
+                        'property': {
+                            'type': 'Identifier',
+                            'name': 'prototype'
+                        }
+                    },
+                    'property': {
+                        'type': 'Identifier',
+                        'name': 'constructor'
+                    }
+                },
+                'right': {
+                    'type': 'Identifier',
+                    'name': objectName
+                }
+            }
+        }
+    };
 
-	var createToStringMethod = function (objectName) {
-		return {
-			'type': 'ExpressionStatement',
-			'expression': {
-				'type': 'AssignmentExpression',
-				'operator': '=',
-				'left': {
-					'type': 'MemberExpression',
-					'computed': false,
-					'object': {
-						'type': 'MemberExpression',
-						'computed': false,
-						'object': {
-							'type': 'Identifier',
-							'name': objectName
-						},
-						'property': {
-							'type': 'Identifier',
-							'name': 'prototype'
-						}
-					},
-					'property': {
-						'type': 'Identifier',
-						'name': 'toString'
-					}
-				},
-				'right': {
-					'type': 'FunctionExpression',
-					'id': null,
-					'params': [],
-					'defaults': [],
-					'body': {
-						'type': 'BlockStatement',
-						'body': [{
-							'type': 'ReturnStatement',
-							'argument': {
-								'type': 'Literal',
-								'value': ' -' + objectName,
-								'raw': ' - ' + objectName
-							}
-						}]
-					},
-					'generator': false,
-					'expression': false
-				}
-			}
-		}
-	};
+    var createToStringMethod = function(objectName) {
+        return {
+            'type': 'ExpressionStatement',
+            'expression': {
+                'type': 'AssignmentExpression',
+                'operator': '=',
+                'left': {
+                    'type': 'MemberExpression',
+                    'computed': false,
+                    'object': {
+                        'type': 'MemberExpression',
+                        'computed': false,
+                        'object': {
+                            'type': 'Identifier',
+                            'name': objectName
+                        },
+                        'property': {
+                            'type': 'Identifier',
+                            'name': 'prototype'
+                        }
+                    },
+                    'property': {
+                        'type': 'Identifier',
+                        'name': 'toString'
+                    }
+                },
+                'right': {
+                    'type': 'FunctionExpression',
+                    'id': null,
+                    'params': [],
+                    'defaults': [],
+                    'body': {
+                        'type': 'BlockStatement',
+                        'body': [{
+                            'type': 'ReturnStatement',
+                            'argument': {
+                                'type': 'Literal',
+                                'value': ' -' + objectName,
+                                'raw': ' - ' + objectName
+                            }
+                        }]
+                    },
+                    'generator': false,
+                    'expression': false
+                }
+            }
+        }
+    };
 
-	var createHandlerMaker = function (handlerMethods, constructorBody) {
-		return {
-			handlerMethods:  handlerMethods,
-			constructorBody: constructorBody,
-			//keep the current handler info accessible as annotations in code will decide where
-			//constructorBody and the methods will end up.
-			make: function (handlerName, parentNodeName, hasPriority, methods, body) {
-				var handler = [];
+    var makeHandler = function(handlerMethods, constructorBody, identifiers) {
+    	identifiers = identifiers || [];
 
-				methods = methods || this.handlerMethods;
-				body    = body || this.constructorBody;
+    	var renameSelfIdentifiers = function(parsenode, string){
+    		estraverse.replace(parsenode, {
+                enter: function(node) {
 
-				handler.push(createConstructor(handlerName, body));
-				if(parentNodeName) 
-					handler.push(createSuperMethod(handlerName, parentNodeName));
-				handler.push(createPriorityMethod(handlerName, hasPriority));
-				handler.push(createSetPrototype(handlerName));
-				handler.push(createSetConstructor(handlerName));
-				handler.push(createToStringMethod(handlerName));
+                    if (esp_isMemberExpression(node) && esp_isThisExpression(node.object) && esp_isIdentifier(node.property)) {
+                        var fieldToRename = node.property.name;
+                        if (identifiers.indexOf(fieldToRename) !== -1) {
+                            node.property.name = renameIdentifier(fieldToRename, string);
+                        }
+                    }
+                }
+            });
+    	}
 
-				methods.map(function (method) {
-					handler.push(method(handlerName));
-				});
+        
 
-				return createBlockStatement(handler);
-			}
-		}
-	};
+        return {
+            handlerMethods: function() {
+                return handlerMethods.slice();
+            },
+            constructorBody: function(name) {
+            	return constructorBody.slice().map(function(e) {
+            		var stm = e(name);
+            		renameSelfIdentifiers(stm, name);
+		            return stm;
+		        });
+            },
+            //keep the current handler info accessible as annotations in code will decide where
+            //constructorBody and the methods will end up.
+            newHandler: function(handlerName, parentNodeName, hasPriority, methods, body) {
+                var handler = [];
 
-	var isSpecialHandlerProperty = function (node) {
-		return Handler.handlerMethods.indexOf(node.key.name) != -1;
-	};
+                handler.push(createConstructor(handlerName, body));
 
-	var extractHandlerObject = function (node) {
-		var name            = node.id.name;
-		var methods         = [];
-		var constructorBody = [];
-		var renames         = {};
+                if (parentNodeName)
+                    handler.push(createSuperMethod(handlerName, parentNodeName));
 
-		estraverse.replace(node, {
-			enter: function (node, parent) {
+                handler.push(createPriorityMethod(handlerName, hasPriority));
+                handler.push(createSetPrototype(handlerName));
+                handler.push(createSetConstructor(handlerName));
+                handler.push(createToStringMethod(handlerName));
 
-				//replace first arg of special handler methods by field access.
-				if (esp_isProperty(node) && esp_isIdentifier(node.key) && isSpecialHandlerProperty(node)) {
-					if (node.value.params.length && esp_isIdentifier(node.value.params[0])) { //first arg
-						var argName = node.value.params[0].name;
-						node.value.params = [];
+                methods.map(function(method) {
+                    handler.push(method(handlerName));
+                });
 
-						//only in the body of the method
-						var body = node.value.body;
-						estraverse.replace(body, {
-							enter: function (node, parent) {
-								if (esp_isIdentifier(node) && node.name === argName)
-									return {
-										'type': 'MemberExpression',
-										'computed': false,
-										'object': {
-											'type': 'ThisExpression'
-										},
-										'property': {
-											'type': 'Identifier',
-											'name': Handler.handlerContext
-										}
-									};
-							}
-						});
-					}
-				}
+                var result = createBlockStatement(handler);
+                //rename all identifiers that have to be renamed and are not yet renamed.
+                renameSelfIdentifiers(result, (body.length === 0) ? handlerName : parentNodeName);
 
-				//Rename: var obj = {field:...} -> var obj = {objfield:...}
-				if (esp_isProperty(node) && esp_isIdentifier(node.key)) {
-					if (esp_isFunExp(node.value) && isSpecialHandlerProperty(node))
-						return;
+                return result;
+            }
+        }
+    };
 
-					var fieldToRename      = node.key.name;
-					var newName            = name + fieldToRename;
-					node.key.name          = newName;
-					renames[fieldToRename] = newName;
-				}
-			}
-		});
+    var isSpecialHandlerProperty = function(node) {
+        return Handler.handlerMethods.indexOf(node.key.name) != -1;
+    };
 
-		//Rename all field accesses (this.field)
-		estraverse.replace(node, {
-			enter: function (node) {
-				if (esp_isMemberExpression(node) && esp_isThisExpression(node.object) && esp_isIdentifier(node.property)) {
-					var identifierName = node.property.name;
+    /*
+		Takes a handler in JS object literal notation and performs the necessary transformations.
+	*/
+    var extractHandlerObject = function(node) {
+        var name              = node.id.name;
+        var methods           = [];
+        var constructorBody   = [];
+        var identifiersRename = [];
 
-					if (renames[identifierName])
-						node.property.name = renames[identifierName];
-				}
-			}
-		});
+        estraverse.replace(node, {
+            enter: function(node, parent) {
 
-		//Transform object properties.
-		estraverse.traverse(node, {
-			enter: function (node) {
-				if (esp_isProperty(node) && esp_isIdentifier(node.key)) {
-					var methodName = node.key.name;
+                //replace first arg of special handler methods by field access.
+                if (esp_isProperty(node) && esp_isIdentifier(node.key) && isSpecialHandlerProperty(node)) {
+                    if (node.value.params.length && esp_isIdentifier(node.value.params[0])) { //first arg
+                        var argName = node.value.params[0].name;
+                        node.value.params = [];
 
-					//only special handler methods will stay
-					if (esp_isFunExp(node.value) && isSpecialHandlerProperty(node)) {
-						methods.push(createMethod(methodName, node.value));
-					} else {
-						//other methods and fields, will become fields in constructor
-						constructorBody.push(createField(methodName, node.value));
-					}
-				}
-			}
-		});
+                        //only in the body of the method
+                        var body = node.value.body;
+                        estraverse.replace(body, {
+                            enter: function(node, parent) {
+                                if (esp_isIdentifier(node) && node.name === argName)
+                                    return {
+                                        'type': 'MemberExpression',
+                                        'computed': false,
+                                        'object': {
+                                            'type': 'ThisExpression'
+                                        },
+                                        'property': {
+                                            'type': 'Identifier',
+                                            'name': Handler.handlerContext
+                                        }
+                                    };
+                            }
+                        });
+                    }
+                }
 
-		return {
-			name: name,
-			handlerMaker: createHandlerMaker(methods, constructorBody)
-		}
-	};
+                //Take the field identifiers in: var obj = {field:...} for renaming.
+                if (esp_isProperty(node) && esp_isIdentifier(node.key)) {
+                    if (esp_isFunExp(node.value) && isSpecialHandlerProperty(node))
+                        return;
 
+                    var fieldToRename = node.key.name;
+                    identifiersRename.push(fieldToRename);
+                }
+            }
+        });
 
-	var extractUseHandlerAnnotation = function(lastParent, comment){
-		var regexp = Handler.handlerUseRegExp;
-		var annotations = [];
+        //Transform object properties.
+        estraverse.traverse(node, {
+            enter: function(node) {
+                if (esp_isProperty(node) && esp_isIdentifier(node.key)) {
+                    var methodName = node.key.name;
 
-		if (comment.search(regexp) >= 0) {
-			var match = regexp.exec(comment);
-			while (match != null) {
-				Handler.handlerCtr++;
-				var m = match[1];
-				var priority = false;
-				if (m.substr(0, 1) === Handler.prioritySign) {
-					priority = true;
-					m = m.substr(1, m.length);
-				}
+                    //only special handler methods will stay
+                    if (esp_isFunExp(node.value) && isSpecialHandlerProperty(node)) {
+                        methods.push(createMethod(methodName, node.value));
+                    } else {
+                        //other methods and fields, will become fields in constructor
+                        constructorBody.push(createField(methodName, node.value));
+                    }
+                }
+            }
+        });
 
-				var currentName = m + Handler.handlerCtr;
+        if (Handler.defined[name])
+            console.log('Warning overriding handler \'' + name + '\'.');
 
-				var annotationInfo = {
-					parent: currentName,
-					uniqueName: currentName,
-					handler: m,
-					rpcCount: 0,
-					priority: priority,
-					leafName: Handler.Generate.makeLeafName(currentName)
-				}
+        Handler.defined[name] = makeHandler(methods, constructorBody, identifiersRename);
+    };
 
-				if (lastParent) {
-					//last one added is our parent
-					annotationInfo.parent = lastParent.uniqueName;
-				}
+    /*
+		Takes a handler in JS object literal notation and performs the necessary transformations.
+	*/
+    var extractUseHandlerAnnotation = function(lastParent, comment) {
+        var regexp = Handler.handlerUseRegExp;
+        var annotations = [];
 
-				annotations.push(annotationInfo);
-				lastParent = annotationInfo;
-				match = regexp.exec(comment);
-			}
-		}
+        if (comment.search(regexp) >= 0) {
+            var match = regexp.exec(comment);
+            while (match != null) {
+                Handler.handlerCtr++;
+                var m = match[1];
+                var priority = false;
+                if (m.substr(0, 1) === Handler.prioritySign) {
+                    priority = true;
+                    m = m.substr(1, m.length);
+                }
 
-		return annotations;
-	};
+                var currentName = m + Handler.handlerCtr;
 
+                var annotationInfo = {
+                    parent: currentName,
+                    uniqueName: currentName,
+                    handler: m,
+                    rpcCount: 0,
+                    priority: priority,
+                    leafName: Handler.makeLeafName(currentName)
+                }
 
-	module.extractHandler = extractHandlerObject;
-	module.extractUseHandlerAnnotation = extractUseHandlerAnnotation;
+                if (lastParent) {
+                    //last one added is our parent
+                    annotationInfo.parent = lastParent.uniqueName;
+                }
 
+                annotations.push(annotationInfo);
+                lastParent = annotationInfo;
+                match = regexp.exec(comment);
+            }
+        }
 
-	return module;
+        return annotations;
+    };
+
+    module.handlerDefinition = extractHandlerObject;
+    module.HandlerAnnotation = extractUseHandlerAnnotation;
+
+    return module;
 });

@@ -381,6 +381,9 @@ var Stip = (function () {
             parsenode = node.expression ? node.expression : node,
             primitive = isPrimitiveCall(node),
             callnode  = graphs.PDG.makeCall(node);
+
+            if(parsenode !== node)
+            	parsenode.handlers = node.handlers;
         
         callnode.name = parsenode.callee.toString();
         if (primitive) {
@@ -713,23 +716,15 @@ var Stip = (function () {
             pdgnode;
             console.log("PDG(" + parsetype + ")" + node);
 
-        	if(upnode && upnode.parsenode && upnode.parsenode.handlers){
-        		console.log('previous handlers', upnode.parsenode.handlers.slice())
-        		node.handlers = upnode.parsenode.handlers.slice();
-        	}else{
-        		node.handlers = [];
-        	}
-        	
-        	if(node.leadingComment){
-        		var lastParent = (node.handlers.length === 0) ? undefined : node.handlers[node.handlers.length - 1];
-				var extraHandlers = Handler.Transform.extractUseHandlerAnnotation(lastParent, node.leadingComment.value);
-				node.handlers = node.handlers.concat(extraHandlers);
-				console.log('LeadingComm:',node.leadingComment.value);
+        if(upnode && upnode.parsenode && upnode.parsenode.handlers){
+    		node.handlers = upnode.parsenode.handlers.slice();
+    	}else{
+    		node.handlers = [];
+    	}    
 
-				console.log('total handlers', node.handlers)
-        	}
-
-  
+        if (node.leadingComment) {
+            Comments.handleBeforeComment(node.leadingComment, node, upnode)
+        }
 
         switch (parsetype) {
             case 'Program':
@@ -796,8 +791,9 @@ var Stip = (function () {
 	    	
 
         if (node.leadingComment) {
-            Comments.handleComment(node, pdgnode, upnode)
+            Comments.handleAfterComment(node.leadingComment, pdgnode, upnode)
         }
+        
         return pdgnode
     }
 

@@ -6,7 +6,6 @@ var pre_analyse = function (ast) {
     var calls = [];
     var assumes = [];
     var comments = [];
-    var defhandlers = Handler.defined;
 
     var function_args = function (callnode) {
         return callnode.arguments.filter(function (arg) {
@@ -166,9 +165,7 @@ var pre_analyse = function (ast) {
 
                 node.declarations.map(function (el) {
                     if (esp_isObjExp(el.init)) {
-                        var transformedHandler = Handler.Transform.extractHandler(el);
-                        defhandlers[transformedHandler.name] = transformedHandler.handlerMaker;
-
+                        Handler.Transform.handlerDefinition(el);
                     }
                 });
 

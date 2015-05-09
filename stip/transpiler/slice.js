@@ -44,21 +44,23 @@ var addHeader = function (option, sliced) {
 		var handlers      = [];
 		var proxies       = [];
 		var totalRpcCount = 0;
-		
+
+		Handler.Generate.init();
 		option.failurehandlers.map(function (el) {
-			handlers = handlers.concat(Handler.Generate.makeHandlerNode(el));
+
+			handlers = handlers.concat(Handler.Generate.handlerNode(el));
 			totalRpcCount = totalRpcCount + el.rpcCount;
 			
 			//we only need a leaf if there are calls to this handler.
 			if (el.rpcCount > 0) {
-				var proxyName = Handler.Generate.makeProxyName(el.uniqueName)
-				proxies = proxies.concat(Handler.Generate.handlerProxyDefinition(proxyName, el.leafName));
+				var proxyName = Handler.makeProxyName(el.uniqueName)
+				proxies = proxies.concat(Handler.Generate.proxyDefinition(proxyName, el.leafName));
 			}
 		});
 
 		//only add handler code if needed.
 		if(totalRpcCount > 0){
-			sliced.setup = sliced.setup.concat(Handler.Generate.handlerProxySetup());
+			sliced.setup = sliced.setup.concat(Handler.Generate.proxySetup());
 
 			handlers.map(function(el){
 				sliced.setup = sliced.setup.concat(el);
@@ -145,9 +147,13 @@ var constructProgram = function (nodes, option) {
                 program.body = program.body.concat(slicing.parsednode);
             }
 
-            if (slicing.failureHandlers){
-				option.failurehandlers = option.failurehandlers.concat(slicing.failureHandlers);
-			}
+        	if(n.parsenode.handlers){
+        		n.parsenode.handlers.map(function (el){
+        			if(option.failurehandlers.indexOf(el) === -1){
+        				option.failurehandlers.push(el)
+        			}
+        		});
+        	}
 
             nodes = slicing.nodes;  
             option.cloudtypes = slicing.cloudtypes;
@@ -186,7 +192,6 @@ var Sliced = function (nodes, node, parsednode) {
     this.streams     = [];
 
     this.cloudtypes      = {};
-    this.failureHandlers = [];
 }
 
 var cloneSliced = function (sliced, nodes, node) {
@@ -195,7 +200,6 @@ var cloneSliced = function (sliced, nodes, node) {
     clone.setup           = sliced.setup;
     clone.streams         = sliced.streams;
     clone.cloudtypes      = sliced.cloudtypes;
-    clone.failureHandlers = sliced.failureHandlers;
     clone.option          = sliced.option;
     return clone;
 }

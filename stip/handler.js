@@ -1,37 +1,47 @@
 'use strict';
 
-var Handler = (function () {
-	var module     = {};
-	var defined    = {};
-	var handlerCtr = 0;
+var Handler = (function() {
+    var module     = {};
+    var defined    = {};
+    var handlerCtr = 0;
 
-	var handlerMethods   = ['onException', 'onNativeException', 'onLibraryException', 'onApplicationException', 'onNetworkException'];
-	var handlerContext   = 'ctxt';
-	var prioritySign     = '+';
-	var annotationRegExp = /[\,\s]+([+]?[a-zA-Z_$]{1}[a-zA-Z0-9_$]*)/g;
+    var handlerMethods   = ['onException', 'onNativeException', 'onLibraryException', 'onApplicationException', 'onNetworkException'];
+    var handlerContext   = 'ctxt';
+    var prioritySign     = '+';
+    var annotationRegExp = /[\,\s]+([+]?[a-zA-Z_$]{1}[a-zA-Z0-9_$]*)/g;
 
-	var generate   = handlerGenerate();
-	var transform  = handlerTransform();
-	var predefined = handlerPreDefined();
+    var makeLeafName = function(name) {
+        return name + 'Leaf';
+    };
 
-	var init = function(){
-		Handler.defined    = Handler.Predefined.predefinedHandlers();
-		Handler.handlerCtr = 0;
-	}
+    var makeProxyName = function(name) {
+        return name + 'Proxy';
+    };
 
+    var generate   = handlerGenerate();
+    var transform  = handlerTransform();
+    var predefined = handlerPreDefined();
 
-	module.defined    = defined;
-	module.handlerCtr = handlerCtr;
-	module.init       = init;
+    var init = function() {
+        Handler.Predefined.generate();
+        Handler.handlerCtr = 0;
+    };
 
-	module.handlerMethods   = handlerMethods;
-	module.prioritySign     = prioritySign;
-	module.handlerUseRegExp = annotationRegExp;
-	module.handlerContext   = handlerContext;
+    module.defined    = defined;
+    module.handlerCtr = handlerCtr;
+    module.init       = init;
 
-	module.Generate   = generate;
-	module.Transform  = transform;
-	module.Predefined = predefined;
+    module.handlerMethods   = handlerMethods;
+    module.prioritySign     = prioritySign;
+    module.handlerUseRegExp = annotationRegExp;
+    module.handlerContext   = handlerContext;
 
-	return module;
+    module.makeLeafName  = makeLeafName;
+    module.makeProxyName = makeProxyName;
+
+    module.Generate   = generate;
+    module.Transform  = transform;
+    module.Predefined = predefined;
+
+    return module;
 })();
