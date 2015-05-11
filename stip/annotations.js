@@ -89,7 +89,7 @@ var Comments = (function () {
 		node.handlers = node.handlers.concat(extraHandlers);	
     };
 
-    registerAfterHandler(handleBlockComment);
+    //registerAfterHandler(handleBlockComment);
     registerBeforeHandler(handleUseHandler);
 
     module.handleBeforeComment      = handleBeforeComment;
@@ -99,6 +99,8 @@ var Comments = (function () {
     module.isAssumesAnnotated       = isAssumesAnnotated;
     module.isTierAnnotated          = isTierAnnotated;
     module.isDefineHandlerAnnotated = isDefineHandlerAnnotated;
+    module.isServerAnnotated        = isServerAnnotated;
+    module.isClientAnnotated        = isClientAnnotated;
 
     return module
 
