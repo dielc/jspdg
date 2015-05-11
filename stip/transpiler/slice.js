@@ -103,6 +103,7 @@ var transformBody = function (option, slicing, body, methods) {
                         body = [cloudtype.declarationS].concat(cloudtype.declarationC).concat(body);
                     }
                 }
+                
                 return body.concat(methodsDecl);
             }
         case 'meteor':

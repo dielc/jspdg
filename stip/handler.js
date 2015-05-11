@@ -6,6 +6,7 @@ var Handler = (function() {
     var handlerCtr = 0;
 
     var handlerMethods   = ['onException', 'onNativeException', 'onLibraryException', 'onApplicationException', 'onNetworkException'];
+    var callInterface = ['callName', 'callArgs', 'callError', 'callResult', 'callRetry', 'retry', 'alternateCall', 'fail', 'succeed', 'finish', 'hasFailureContinuationl'];
     var handlerContext   = 'ctxt';
     var prioritySign     = '+';
     var annotationRegExp = /[\,\s]+([+]?[a-zA-Z_$]{1}[a-zA-Z0-9_$]*)/g;
@@ -32,6 +33,7 @@ var Handler = (function() {
     module.init       = init;
 
     module.handlerMethods   = handlerMethods;
+    module.callInterface	= callInterface;
     module.prioritySign     = prioritySign;
     module.handlerUseRegExp = annotationRegExp;
     module.handlerContext   = handlerContext;

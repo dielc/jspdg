@@ -373,7 +373,11 @@ var handlerTransform = (function() {
                         var body = node.value.body;
                         estraverse.replace(body, {
                             enter: function(node, parent) {
-                                if (esp_isIdentifier(node) && node.name === argName)
+                                if (esp_isIdentifier(node) && node.name === argName){
+
+                                	if(parent.property && parent.property.name && Handler.callInterface.indexOf(parent.property.name) === -1)
+                                		throw new Error('Error: undefined identifier \'' + parent.property.name + '\', does not appear in call interface.');
+                                	
                                     return {
                                         'type': 'MemberExpression',
                                         'computed': false,
@@ -385,6 +389,7 @@ var handlerTransform = (function() {
                                             'name': Handler.handlerContext
                                         }
                                     };
+                                }
                             }
                         });
                     }
