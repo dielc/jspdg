@@ -407,7 +407,7 @@ var Stip = (function () {
 
 
     var handleObjectExpression = function (graphs, node, upnode) {
-        var objectEntry = new ObjectEntryNode(graphs.PDG.entIndex++, node, upnode),
+        var objectEntry = new ObjectEntryNode(graphs.PDG.entIndex++, node),
             prevEntry   = graphs.PDG.entrynode;
         graphs.PDG.changeEntry(objectEntry);
         if (esp_isVarDeclarator(upnode.parsenode))

@@ -24,8 +24,10 @@ var Handler = (function() {
     var predefined = handlerPreDefined();
 
     var init = function() {
-        Handler.Predefined.generate();
         Handler.handlerCtr = 0;
+        Handler.defined = {};
+        Handler.Predefined.generate();
+        
     };
 
     module.defined    = defined;
