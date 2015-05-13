@@ -81,12 +81,16 @@ var Comments = (function () {
     }
 
     var handleUseHandler = function (comment, parsenode, upnode) {
-        var node = parsenode,
-        	handlerCtr = node.handlers.length,
-        	lastParent = (handlerCtr === 0) ? undefined : node.handlers[handlerCtr - 1];
-		
+    	
+        var node = parsenode;
+
+    	
+    	var handlerCtr = parsenode.handlersAsync.length;
+    	var	lastParent = (handlerCtr === 0) ? undefined : parsenode.handlersAsync[handlerCtr - 1];
+        	
 		var extraHandlers = Handler.Transform.HandlerAnnotation(lastParent, comment.value);
-		node.handlers = node.handlers.concat(extraHandlers);	
+		node.handlersAsync = node.handlersAsync.concat(extraHandlers);	
+
     };
 
     //registerAfterHandler(handleBlockComment);

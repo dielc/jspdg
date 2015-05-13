@@ -204,6 +204,7 @@ var pre_analyse = function (ast) {
 
 	return  { 
         src      :   src,
-        assumes  : assumes
+        assumes  : assumes,
+        primitives : ["$", "jQuery", "console"]
     };
 }

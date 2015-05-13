@@ -31,9 +31,9 @@ var CPSTransform = (function () {
             datadeps, calldeps, vardecls, parsednode, transformargs, bodynode;
 
 
-        if (call.parsenode.handlers && call.parsenode.handlers.length != 0) {
-			var handlerCtr = call.parsenode.handlers.length,
-				lastHandler = call.parsenode.handlers[handlerCtr - 1];
+        if (call.parsenode.handlersAsync && call.parsenode.handlersAsync.length != 0) {
+			var handlerCtr = call.parsenode.handlersAsync.length,
+				lastHandler = call.parsenode.handlersAsync[handlerCtr - 1];
 
 			if (asyncCall.setObjectName) {
 				var handlerName = lastHandler.uniqueName

@@ -148,8 +148,8 @@ var constructProgram = function (nodes, option) {
                 program.body = program.body.concat(slicing.parsednode);
             }
 
-        	if(n.parsenode.handlers){
-        		n.parsenode.handlers.map(function (el){
+        	if(n.parsenode.handlersAsync){
+        		n.parsenode.handlersAsync.map(function (el){
         			if(option.failurehandlers.indexOf(el) === -1){
         				option.failurehandlers.push(el)
         			}
