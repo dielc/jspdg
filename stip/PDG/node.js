@@ -152,6 +152,19 @@ PDG_Node.prototype.enclosingObjectEntry = function () {
     return entry;
 }
 
+PDG_Node.prototype.findCallNodes = function () {
+    var outs  = this.getOutEdges(EDGES.CONTROL),
+        calls = [];
+    while (outs.length > 0) {
+        var edge = outs.shift(),
+            to   = edge.to;
+        if (to.isCallNode)
+            calls.push(to)
+        outs = outs.concat(to.getOutEdges(EDGES.CONTROL))
+    }
+    return calls;
+}
+
 PDG_Node.prototype.dataDependentNodes = function(crossTier, includeActualP) {
     var set = [],
         data_out = this.edges_out.slice().filter(function (e) {
