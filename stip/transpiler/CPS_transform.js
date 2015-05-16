@@ -18,7 +18,8 @@ var CPSTransform = (function () {
 
     function transformCall(call, nodes, transform, upnode, esp_exp) {
         var asyncCall   = transform.asyncCallF(call, call.name, []),
-            callback    = transform.callbackF(cps_count),
+        	trystm      = esp_inTryStatement(transform.AST, call.parsenode),
+            callback    = transform.callbackF(cps_count, esp_isTryStm(trystm) ? trystm : null),
             slicednodes = nodes,
             actual_ins  = call.getActualIn(),
             parent      = Ast.parent(call.parsenode, transform.AST),
@@ -59,8 +60,12 @@ var CPSTransform = (function () {
             }
             if (transform.shouldTransform(call))
                 esp_exp = transformVar(esp_exp, call, cps_count);
+
+            var inTryStm  = esp_inTryStatement(transform.AST, upnode.parsenode);
+
             callback.addBodyStm(upnode.parsenode);
-            slicednodes = removeNode(slicednodes, upnode);
+            slicednodes = removeNode(slicednodes, upnode); 
+
             /* Data depentent nodes */
             datadeps.map(function (node) {
                 if(!(node.isActualPNode)) {
@@ -81,7 +86,7 @@ var CPSTransform = (function () {
 
                     datadep = datadep.concat(calldeps);
                     datadep = datadep.concat(vardecls);
-                    datadep = datadep.concat(node);             
+                    datadep = datadep.concat(node);           
                 }
                 else {
                     var callnode = node.getCall()[0],
@@ -91,6 +96,7 @@ var CPSTransform = (function () {
                     else 
                         datadep = datadep.concat(callnode)
                 }
+
                 datadep.map( function (n) {
                     if (slicedContains(slicednodes, n) && transform.shouldTransform(call)) {
                         bodynode = transform.transformF(slicednodes, n, transform.option); 
@@ -102,7 +108,7 @@ var CPSTransform = (function () {
         }
         /* Add the callback as last argument to the async call. */
         asyncCall.addArg(callback.parsenode)
-        asyncCall.setCallback(callback);
+        asyncCall.setCallback(callback);       
         (function (callback) {
             asyncCall.parsenode.cont = function (node) {
                 var respar = callback.getResPar(),
@@ -136,7 +142,10 @@ var CPSTransform = (function () {
                        Does not apply for transformed call statements */
                     if (node.parsednode.cont || slicedContains(slicednodes, node.node) ||
                         node.node.edges_out.filter(function (e) {return e.to.isCallNode}).length > 0) {
-                        parsednode.getCallback().addBodyStm(node.parsednode)
+
+                        var inTryStm  = esp_inTryStatement(transform.AST, node.node.parsenode);
+                        parsednode.getCallback().addBodyStm(node.parsednode, inTryStm)
+
                         slicednodes = removeNode(slicednodes, node.node)
                     }
                 })
@@ -153,7 +162,15 @@ var CPSTransform = (function () {
                        Does not apply for transformed call statements */
                     if (node.parsednode.cont || slicedContains(slicednodes, node.node)||
                         node.node.edges_out.filter(function (e) {return e.to.isCallNode}).length > 0) {
-                        asyncCall.getCallback().addBodyStm(node.parsednode)
+
+                    	var e_in = node.node.edges_in.filter(function (e) {
+                                return  e.equalsType(EDGES.CONTROL) && 
+                                        esp_isTryStm(e.from.parsenode)
+                            }).map(function (e) { return e.from });
+
+                        var inTryStm  = esp_inTryStatement(transform.AST, node.node.parsenode);
+                        asyncCall.getCallback().addBodyStm(node.parsednode, e_in.length!=0)
+
                         slicednodes = removeNode(slicednodes, node.node)
                     }
                 })
@@ -168,7 +185,10 @@ var CPSTransform = (function () {
                        Does not apply for transformed call statements */
                     if (node.parsednode.cont || slicedContains(slicednodes, node.node)||
                         node.node.edges_out.filter(function (e) {return e.to.isCallNode}).length>0) {
-                        asyncCall.getCallback().addBodyStm(node.parsednode)
+
+                        var inTryStm  = esp_inTryStatement(transform.AST, node.node.parsenode);
+                        asyncCall.getCallback().addBodyStm(node.parsednode, inTryStm)
+
                         slicednodes = removeNode(slicednodes, node.node)
                     }
                 })
@@ -285,6 +305,10 @@ var CPSTransform = (function () {
                 if (esp_isRetStm(n)) 
                     /* First argument of callback is error */
                     n.update('callback(null, ' + n.argument.source() + ')')
+
+                if (esp_isThrowStm(n))
+                	/* Invoke callback with error argument*/  
+                	n.update('callback(' + n.argument.source() + ')')  
             })
             method.setBody(esprima.parse(func.toString()).body[0].expression.right.body.body);
             /* Parameters: callback should be added */

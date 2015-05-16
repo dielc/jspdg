@@ -240,6 +240,7 @@ var Stip = (function () {
         node.block.body.map(function (bodynode) {
             makePDGNode(graphs, bodynode, stmNode)
         });
+        
         return [stmNode];
     }
 

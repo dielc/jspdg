@@ -552,6 +552,7 @@ var Stip = (function () {
                     addDataDep(actual_out, callnode)
                 },
             trynode, a_out;
+
         excExits.map(function (excExit) {
             var form_out = excExit.getOutEdges()
                             .map(function (e) {return e.to})

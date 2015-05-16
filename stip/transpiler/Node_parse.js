@@ -18,8 +18,39 @@ var NodeParse = (function () {
      /*  Representation of a callback function :
      *    callback(errx, resx) {}
      */
-    var callback = function (cnt) {
-        return {  parsenode : {
+    var callback = function (cnt, syncHandler) {
+        var body = [];
+        if(syncHandler){
+            body = [{
+                "type": "TryStatement",
+                "block": {
+                    "type": "BlockStatement",
+                    "body": [
+                        {
+                            "type": "IfStatement",
+                            "test": {
+                                "type": "Identifier",
+                                "name": "err"+cnt
+                            },
+                            "consequent": {
+                                "type": "ThrowStatement",
+                                "argument": {
+                                    "type": "Identifier",
+                                    "name": "err"+cnt
+                                }
+                            },
+                            "alternate": null
+                        }
+                        ]
+                },
+                "guardedHandlers": [],
+                "handlers": syncHandler.handlers.slice(),
+                //"handler": syncHandler.handlers,
+                "finalizer": syncHandler.finalizer
+            }];
+        }   
+
+        return {  parsenode :{
                     "type": "FunctionExpression",
                     "id": null,
                     "params": [
@@ -35,23 +66,44 @@ var NodeParse = (function () {
                     "defaults": [],
                     "body": {
                         "type": "BlockStatement",
-                        "body": []
+                        "body": body
                     },
                     "rest": null,
                     "generator": false,
                     "expression": false
-                  },
-                  addBodyStm : function (stm) {
-                    this.parsenode.body.body = this.parsenode.body.body.concat(stm)
+                  }, 
+                  addBodyStm : function (stm, insideTry) {
+                        console.log('-> addBodyStm', stm, insideTry)
+                        if(syncHandler && (insideTry === undefined || insideTry)){
+                            this.parsenode.body.body[0].block.body = this.parsenode.body.body[0].block.body.concat(stm)
+                        }else{
+                            this.parsenode.body.body = this.parsenode.body.body.concat(stm)
+                        }
+
+                            
+                    
                   },
                   setBody    : function (body) {
-                    this.parsenode.body.body = body
+                    if(syncHandler){
+                       this.parsenode.body.body[0].block.body = body; 
+                    }else{
+                        this.parsenode.body.body = body
+                    }
+
+                    
                   },
                   getBody    : function () {
-                    return this.parsenode.body.body;
+                    if(syncHandler){
+                       return this.parsenode.body.body[0].block.body; 
+                    }else{
+                        return this.parsenode.body.body;
+                    }
                   },
                   getResPar  : function () {
                     return this.parsenode.params[1];
+                  },
+                  getErrPar  : function () {
+                    return this.parsenode.params[0];
                   }
          }
     }
@@ -113,6 +165,9 @@ var NodeParse = (function () {
                   setName : function (name) {
                     this.parsenode.expression.arguments[0].value = name
                   },
+                
+
+
                   getCallback : function () {
                     if (this.callback) 
                         return this.callback
