@@ -37,12 +37,12 @@ var CPSTransform = (function () {
 				lastHandler = call.parsenode.handlersAsync[handlerCtr - 1];
 
 			if (asyncCall.setObjectName) {
-				var handlerName = lastHandler.uniqueName
+				var handlerName = lastHandler.getUniqueName();
 				var proxyName = Handler.makeProxyName(handlerName);
 				asyncCall.setObjectName(proxyName);
 			}
 
-			lastHandler.rpcCount++;
+			lastHandler.incRpcCount();
 		}    
 
         /* Add original arguments to async call */
@@ -61,8 +61,7 @@ var CPSTransform = (function () {
             if (transform.shouldTransform(call))
                 esp_exp = transformVar(esp_exp, call, cps_count);
 
-            var inTryStm  = esp_inTryStatement(transform.AST, upnode.parsenode);
-
+            upnode.parsenode.inTryBlock = true;
             callback.addBodyStm(upnode.parsenode);
             slicednodes = removeNode(slicednodes, upnode); 
 
@@ -100,6 +99,13 @@ var CPSTransform = (function () {
                 datadep.map( function (n) {
                     if (slicedContains(slicednodes, n) && transform.shouldTransform(call)) {
                         bodynode = transform.transformF(slicednodes, n, transform.option); 
+                        var e_in = bodynode.node.edges_in.filter(function (e) {
+                                return  e.equalsType(EDGES.CONTROL) && 
+                                        esp_isTryStm(e.from.parsenode)
+                            }).map(function (e) { return e.from });
+
+                        bodynode.parsednode.inTryBlock = (e_in.length != 0)
+
                         slicednodes = bodynode.nodes;
                         callbackstms = callbackstms.concat(bodynode);}
                 })
@@ -114,8 +120,9 @@ var CPSTransform = (function () {
                 var respar = callback.getResPar(),
                     arg    = this.callnode,
                     transf = transformVar(arg.parsenode, call, respar.name.slice(-1));
+                    
                 node.replaceArg(arg.expression[0], transf);
-                callback.setBody([node.parsenode].concat(callback.getBody().slice(1)))
+                callback.setBody([node.parsenode].concat(callback.getBody().slice(1)));
             }
         })(callback)
         parsednode = asyncCall;
@@ -143,8 +150,7 @@ var CPSTransform = (function () {
                     if (node.parsednode.cont || slicedContains(slicednodes, node.node) ||
                         node.node.edges_out.filter(function (e) {return e.to.isCallNode}).length > 0) {
 
-                        var inTryStm  = esp_inTryStatement(transform.AST, node.node.parsenode);
-                        parsednode.getCallback().addBodyStm(node.parsednode, inTryStm)
+                        parsednode.getCallback().addBodyStm(node.parsednode)
 
                         slicednodes = removeNode(slicednodes, node.node)
                     }
@@ -163,13 +169,7 @@ var CPSTransform = (function () {
                     if (node.parsednode.cont || slicedContains(slicednodes, node.node)||
                         node.node.edges_out.filter(function (e) {return e.to.isCallNode}).length > 0) {
 
-                    	var e_in = node.node.edges_in.filter(function (e) {
-                                return  e.equalsType(EDGES.CONTROL) && 
-                                        esp_isTryStm(e.from.parsenode)
-                            }).map(function (e) { return e.from });
-
-                        var inTryStm  = esp_inTryStatement(transform.AST, node.node.parsenode);
-                        asyncCall.getCallback().addBodyStm(node.parsednode, e_in.length!=0)
+                        asyncCall.getCallback().addBodyStm(node.parsednode);
 
                         slicednodes = removeNode(slicednodes, node.node)
                     }
@@ -186,8 +186,7 @@ var CPSTransform = (function () {
                     if (node.parsednode.cont || slicedContains(slicednodes, node.node)||
                         node.node.edges_out.filter(function (e) {return e.to.isCallNode}).length>0) {
 
-                        var inTryStm  = esp_inTryStatement(transform.AST, node.node.parsenode);
-                        asyncCall.getCallback().addBodyStm(node.parsednode, inTryStm)
+                        asyncCall.getCallback().addBodyStm(node.parsednode)
 
                         slicednodes = removeNode(slicednodes, node.node)
                     }

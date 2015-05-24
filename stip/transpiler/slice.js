@@ -41,24 +41,44 @@ var addHeader = function (option, sliced) {
     }
 
     if (option.asynccomm === 'callbacks' && option.target === 'node.js') {
-		var handlers      = [];
-		var proxies       = [];
-		var totalRpcCount = 0;
+		var handlers      = [],
+		    proxies       = [],
+		    totalRpcCount = 0,
+            removedHandlers = {},
+            definedHandlers;
 
-		Handler.Generate.init();
-		option.failurehandlers.map(function (el) {
+		Handler.Generate.init();      
 
+        //filter out handlers that are not defined
+        definedHandlers = option.failurehandlers.reduce(
+            function(previousValue, current){
+                
+                if(removedHandlers[current.getParent()])
+                    current.setParent(removedHandlers[current.getParent()]);
+                var parent = current.getParent();
+                
+                if(current.getRpcCount() == 0 && !Handler.Generate.handlerDefinition(current)){
+                    removedHandlers[current.getUniqueName()] = parent;
+                }else{
+                    previousValue.push(current);
+                }
+                
+                return previousValue;
+        }, []);
+
+		definedHandlers.map(function (el) {
+            
+            totalRpcCount = totalRpcCount + el.getRpcCount();
 			handlers = handlers.concat(Handler.Generate.handlerNode(el));
-			totalRpcCount = totalRpcCount + el.rpcCount;
 			
 			//we only need a leaf if there are calls to this handler.
-			if (el.rpcCount > 0) {
-				var proxyName = Handler.makeProxyName(el.uniqueName)
-				proxies = proxies.concat(Handler.Generate.proxyDefinition(proxyName, el.leafName));
+			if (el.getRpcCount() > 0) {
+				var proxyName = Handler.makeProxyName(el.getUniqueName())
+				proxies = proxies.concat(Handler.Generate.proxyDefinition(proxyName, el.getLeafName()));
 			}
 		});
 
-		//only add handler code if needed.
+		//only add handlers if there are RPCs
 		if(totalRpcCount > 0){
 			sliced.setup = sliced.setup.concat(Handler.Generate.proxySetup());
 

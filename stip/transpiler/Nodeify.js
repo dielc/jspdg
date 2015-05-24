@@ -305,6 +305,7 @@ var Nodeify = (function () {
                                            esp_isCatchStm(n.parsenode)})
                         }),
             handler;
+            debugger;
         blocknodes.map(function (node) {
             if (slicedContains(sliced.nodes, node)) {
                 var toSlice = cloneSliced(sliced, sliced.nodes, node);
@@ -320,9 +321,23 @@ var Nodeify = (function () {
                 handler = catchnode.parsednode;
                 sliced.nodes = removeNode(catchnode.nodes, node);
             }
-        })
+        });
+
+
         node.parsenode.handler = handler;
         node.parsenode.block.body = block;
+
+        //remote try-catch if all calls are remote
+        var allRemotes = block.filter(function (node){
+            return node.callnode && node.callnode.edges_out.filter(function(edge){
+                return edge.equalsType(EDGES.REMOTEC)
+            }).length >= 1
+        }).length === block.length;
+
+        if(allRemotes){
+            node.parsenode = block;
+        }
+
         sliced.nodes = sliced.nodes.remove(node);
         return new Sliced(sliced.nodes, node, node.parsenode);
     }

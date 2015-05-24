@@ -81,15 +81,12 @@ var Comments = (function () {
     }
 
     var handleUseHandler = function (comment, parsenode, upnode) {
-    	
-        var node = parsenode;
-
-    	
-    	var handlerCtr = parsenode.handlersAsync.length;
-    	var	lastParent = (handlerCtr === 0) ? undefined : parsenode.handlersAsync[handlerCtr - 1];
-        	
-		var extraHandlers = Handler.Transform.HandlerAnnotation(lastParent, comment.value);
-		node.handlersAsync = node.handlersAsync.concat(extraHandlers);	
+        var node = parsenode,
+            handlerCtr = parsenode.handlersAsync.length,
+    	    lastParent = (handlerCtr === 0) ? undefined : parsenode.handlersAsync[handlerCtr - 1],
+        	extraHandlers = Handler.Transform.HandlerAnnotation(lastParent, comment.value);
+		
+        node.handlersAsync = node.handlersAsync.concat(extraHandlers);	
 
     };
 

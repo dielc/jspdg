@@ -112,9 +112,8 @@ var esp_getCalledName = function (callnode) {
 
 var esp_inTryStatement = function (ast, node) {
   var parent = Ast.parent(node, ast);
-  
   while (!esp_isProgram(parent)) {
-    if(!parent) return false;
+    if(!parent || esp_isCatchStm(parent)) break;
     if (esp_isTryStm(parent))
       break;
     parent = Ast.parent(parent, ast)

@@ -695,6 +695,7 @@ var Stip = (function () {
             isPrimitive = graphs.ATP.isPrimitive(node),
             declaration;
         if (!isPrimitive) {
+            // SHOULD RETURN ALL DECLARATIONS OF...
             declaration = Pdg.declarationOf(node, graphs.AST);
             /* Accessing object */
             if (esp_isMemberExpression(parent)) {
@@ -707,6 +708,7 @@ var Stip = (function () {
             else if (esp_isAssignmentExp(parent)) {
                 /* Currently handling constructor function */
                 if (graphs.PDG.entryNode.isConstructor && esp_isMemberExpression(parent.left)) {
+                    
                     formp = formp.filter( function (f) {
                         return f.name === node.name
                     })

@@ -72,20 +72,27 @@ var NodeParse = (function () {
                     "generator": false,
                     "expression": false
                   }, 
-                  addBodyStm : function (stm, insideTry) {
-                        console.log('-> addBodyStm', stm, insideTry)
-                        if(syncHandler && (insideTry === undefined || insideTry)){
+                  addBodyStm : function (stm) {
+
+                        if(syncHandler && stm.inTryBlock){
                             this.parsenode.body.body[0].block.body = this.parsenode.body.body[0].block.body.concat(stm)
                         }else{
                             this.parsenode.body.body = this.parsenode.body.body.concat(stm)
                         }
-
-                            
-                    
                   },
                   setBody    : function (body) {
+
                     if(syncHandler){
-                       this.parsenode.body.body[0].block.body = body; 
+                        var throwS = {
+                            "type": "IfStatement",
+                            "test": this.getResPar(),
+                            "consequent": {
+                                "type": "ThrowStatement",
+                                "argument": this.getErrPar()
+                            },
+                            "alternate": null
+                        };
+                       this.parsenode.body.body[0].block.body = [throwS].concat(body); 
                     }else{
                         this.parsenode.body.body = body
                     }
@@ -93,8 +100,10 @@ var NodeParse = (function () {
                     
                   },
                   getBody    : function () {
+                    debugger;
                     if(syncHandler){
-                       return this.parsenode.body.body[0].block.body; 
+                        var inTryBody = this.parsenode.body.body[0].block.body.slice(1);
+                        return inTryBody.concat(this.parsenode.body.body.slice(1)); 
                     }else{
                         return this.parsenode.body.body;
                     }
