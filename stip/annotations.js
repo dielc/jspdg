@@ -17,6 +17,8 @@ var Comments = (function () {
     var assumes_annotation     = "@assumes";
     var use_handler_annotation = "@useHandler";
 	var define_handler_annotation = "@defineHandlers";
+    var reply_annotation     = "@reply";
+    var broadcast_annotation = "@broadcast";
     
 
     // Client annotations is @client in comment
@@ -40,6 +42,14 @@ var Comments = (function () {
 	var isDefineHandlerAnnotated = function (node) {
 		return node.leadingComment && node.leadingComment.value.indexOf(define_handler_annotation) != -1;
 	};
+
+    var isReplyAnnotated = function (comment) {
+        return comment.value.indexOf(reply_annotation) != -1;
+    }
+
+    var isBroadcastAnnotated = function (comment) {
+        return comment.value.indexOf(broadcast_annotation) != -1;
+    }
 
     var isTierAnnotated = function (node) {
         return node.leadingComment &&
@@ -90,8 +100,42 @@ var Comments = (function () {
 
     };
 
-    //registerAfterHandler(handleBlockComment);
+    var handleReplyComment = function (comment, pdgNodes) {
+        pdgNodes.map(function (pdgNode) {
+            var callnodes;
+            if (isReplyAnnotated(comment)) {
+                if (pdgNode.isCallNode) 
+                    pdgNode.arity = ARITY.ONE;
+                else {
+                    callnodes = pdgNode.findCallNodes();
+                    callnodes.map(function (callNode) {
+                        callNode.arity = ARITY.ONE
+                    })
+                }
+            }
+        })
+    }
+
+    var handleBroadcastComment = function (comment, pdgNodes) {
+        pdgNodes.map(function (pdgNode) {
+            var callnodes;
+            if (isBroadcastAnnotated(comment)) {
+                if (pdgNode.isCallNode) 
+                    pdgNode.arity = ARITY.ALL;
+                else {
+                    callnodes = pdgNode.findCallNodes();
+                    callnodes.map(function (callNode) {
+                        callNode.arity = ARITY.ALL;
+                    })
+                }
+            }
+        })
+    }
+
     registerBeforeHandler(handleUseHandler);
+    registerAfterHandler(handleReplyComment);
+    registerAfterHandler(handleBroadcastComment);
+   // registerAfterHandler(handleBlockComment);
 
     module.handleBeforeComment      = handleBeforeComment;
     module.handleAfterComment       = handleAfterComment;
@@ -99,9 +143,9 @@ var Comments = (function () {
     module.registerAfterHandler     = registerAfterHandler;
     module.isAssumesAnnotated       = isAssumesAnnotated;
     module.isTierAnnotated          = isTierAnnotated;
-    module.isDefineHandlerAnnotated = isDefineHandlerAnnotated;
     module.isServerAnnotated        = isServerAnnotated;
     module.isClientAnnotated        = isClientAnnotated;
+    module.isDefineHandlerAnnotated = isDefineHandlerAnnotated;
 
     return module
 

@@ -102,6 +102,8 @@ var transformBody = function (option, slicing, body, methods) {
     switch (option.target) {
         case 'node.js':
             if (option.tier === 'client') {
+                var methodsDecl = NodeParse.methodsClient();
+                methodsDecl.expression.arguments = methods;
                 /* Add cloud types declarations */
                 for(var name in slicing.cloudtypes) {
                     if(slicing.cloudtypes.hasOwnProperty(name)) {
@@ -109,7 +111,8 @@ var transformBody = function (option, slicing, body, methods) {
                         body = [cloudtype.declarationC].concat(body);
                     }
                 }
-                return body;
+
+                return body.concat(methodsDecl);
             }
             else {
                 /* server rpcs + cloudtypes are added */
@@ -123,7 +126,7 @@ var transformBody = function (option, slicing, body, methods) {
                         body = [cloudtype.declarationS].concat(cloudtype.declarationC).concat(body);
                     }
                 }
-                
+
                 return body.concat(methodsDecl);
             }
         case 'meteor':
@@ -131,12 +134,14 @@ var transformBody = function (option, slicing, body, methods) {
                 /* remote procedure definitions are added */
                 var methodsDecl = MeteorParse.methodsServer();
                 methodsDecl.expression.arguments = methods;
+
                 return body.concat(methodsDecl);
             }
             if (option.tier === 'client') {
                 /* remote procedure definitions are added */
                 var methodsDecl = MeteorParse.methodsClient();
                 methodsDecl.expression.arguments = methods;
+
                 return body.concat(methodsDecl);
             }
     }
@@ -158,6 +163,7 @@ var constructProgram = function (nodes, option) {
         nosetup = createProgram(),
         slicing, 
         methods = [];
+
     //program.body = addPrimitives(option);
     option.failurehandlers = [];
     while (nodes.length > 0) {
@@ -216,17 +222,21 @@ var Sliced = function (nodes, node, parsednode) {
 }
 
 var cloneSliced = function (sliced, nodes, node) {
-    var clone             = new Sliced(nodes, node);
-    clone.methods         = sliced.methods;
-    clone.setup           = sliced.setup;
-    clone.streams         = sliced.streams;
-    clone.cloudtypes      = sliced.cloudtypes;
-    clone.option          = sliced.option;
+    var clone = new Sliced(nodes, node);
+
+    clone.methods    = sliced.methods;
+    clone.setup      = sliced.setup;
+    clone.streams    = sliced.streams;
+    clone.cloudtypes = sliced.cloudtypes;
+    clone.option     = sliced.option;
+
     return clone;
 }
 
 var setUpContains = function (sliced, name) {
+
     return sliced.setup.filter(function (pars) {
+        
         return pars.type === "VariableDeclaration" && 
             pars.declarations[0].id.name === name
     }).length > 0;
