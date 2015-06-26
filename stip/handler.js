@@ -5,6 +5,7 @@ var Handler = (function () {
 	var defined    = {};
 	var handlerCtr = 0;
 
+    var reservedKeywords = ['id'];
 	var handlerMethods =
 		['onException', 'onNativeException', 'onLibraryException', 'onApplicationException', 'onNetworkException'];
 	var callInterface =
@@ -36,11 +37,12 @@ var Handler = (function () {
 	module.handlerCtr = handlerCtr;
 	module.init       = init;
 
-	module.handlerMethods   = handlerMethods;
-	module.callInterface    = callInterface;
-	module.prioritySign     = prioritySign;
-	module.handlerUseRegExp = annotationRegExp;
-	module.handlerContext   = handlerContext;
+    module.reservedKeywords    = reservedKeywords;
+	module.handlerMethods      = handlerMethods;
+	module.callInterface       = callInterface;
+	module.prioritySign        = prioritySign;
+	module.handlerUseRegExp    = annotationRegExp;
+	module.handlerContext      = handlerContext;
 
 	module.makeLeafName  = makeLeafName;
 	module.makeProxyName = makeProxyName;

@@ -45,7 +45,11 @@ var handlerPreDefined = (function() {
 
 
         /* Handler that does not do a thing. */
-        noOpHandler = esprima.parse("var _noOpHandler = {}").body[0].declarations[0];
+        noOpHandler = esprima.parse("var _noOpHandler = {\
+                    onException: function (call) {\
+                        call.proceed();\
+                    }\
+                }").body[0].declarations[0];
 
 
         /* Handler that halts the computation. */

@@ -15,6 +15,13 @@ var handlerTransform = (function () {
 		}
 	};
 
+    var createIdentifier = function (name){
+        return {
+            "type": "Identifier",
+            "name": name
+        }
+    }
+
 	var createField = function (fieldName, rhs) {
 		return function (name) {
 			var newName = renameIdentifier(fieldName, name) || fieldName;
@@ -149,32 +156,59 @@ var handlerTransform = (function () {
 		}
 	};
 
-	var createPriorityMethod = function (objectName, hasPriority) {
-		return {
-			'type': 'ExpressionStatement',
-			'expression': {
-				'type': 'AssignmentExpression',
-				'operator': '=',
-				'left': {
-					'type': 'MemberExpression',
-					'computed': false,
-					'object': {
-						'type': 'Identifier',
-						'name': objectName
-					},
-					'property': {
-						'type': 'Identifier',
-						'name': 'flagPriority'
-					}
-				},
-				'right': {
-					'type': 'Literal',
-					'value': hasPriority,
-					'raw': hasPriority.toString()
-				}
-			}
-		}
-	};
+    var createHandlerIdentifier = function (objectName, id) {
+        return {
+            'type': 'ExpressionStatement',
+            'expression': {
+                'type': 'AssignmentExpression',
+                'operator': '=',
+                'left': {
+                    'type': 'MemberExpression',
+                    'computed': false,
+                    'object': {
+                        'type': 'Identifier',
+                        'name': objectName
+                    },
+                    'property': {
+                        'type': 'Identifier',
+                        'name': 'id'
+                    }
+                },
+                'right': {
+                    'type': 'Literal',
+                    'value': id,
+                    'raw': id.toString()
+                }
+            }
+        }
+    };
+
+	// var createPriorityMethod = function (objectName, hasPriority) {
+	// 	return {
+	// 		'type': 'ExpressionStatement',
+	// 		'expression': {
+	// 			'type': 'AssignmentExpression',
+	// 			'operator': '=',
+	// 			'left': {
+	// 				'type': 'MemberExpression',
+	// 				'computed': false,
+	// 				'object': {
+	// 					'type': 'Identifier',
+	// 					'name': objectName
+	// 				},
+	// 				'property': {
+	// 					'type': 'Identifier',
+	// 					'name': 'flagPriority'
+	// 				}
+	// 			},
+	// 			'right': {
+	// 				'type': 'Literal',
+	// 				'value': hasPriority,
+	// 				'raw': hasPriority.toString()
+	// 			}
+	// 		}
+	// 	}
+	// };
 
 	var createSetPrototype = function (objectName) {
 		return {
@@ -240,59 +274,59 @@ var handlerTransform = (function () {
 		}
 	};
 
-	var createToStringMethod = function (objectName) {
-		return {
-			'type': 'ExpressionStatement',
-			'expression': {
-				'type': 'AssignmentExpression',
-				'operator': '=',
-				'left': {
-					'type': 'MemberExpression',
-					'computed': false,
-					'object': {
-						'type': 'MemberExpression',
-						'computed': false,
-						'object': {
-							'type': 'Identifier',
-							'name': objectName
-						},
-						'property': {
-							'type': 'Identifier',
-							'name': 'prototype'
-						}
-					},
-					'property': {
-						'type': 'Identifier',
-						'name': 'toString'
-					}
-				},
-				'right': {
-					'type': 'FunctionExpression',
-					'id': null,
-					'params': [],
-					'defaults': [],
-					'body': {
-						'type': 'BlockStatement',
-						'body': [{
-							'type': 'ReturnStatement',
-							'argument': {
-								'type': 'Literal',
-								'value': ' -' + objectName,
-								'raw': ' - ' + objectName
-							}
-						}]
-					},
-					'generator': false,
-					'expression': false
-				}
-			}
-		}
-	};
+	// var createToStringMethod = function (objectName) {
+	// 	return {
+	// 		'type': 'ExpressionStatement',
+	// 		'expression': {
+	// 			'type': 'AssignmentExpression',
+	// 			'operator': '=',
+	// 			'left': {
+	// 				'type': 'MemberExpression',
+	// 				'computed': false,
+	// 				'object': {
+	// 					'type': 'MemberExpression',
+	// 					'computed': false,
+	// 					'object': {
+	// 						'type': 'Identifier',
+	// 						'name': objectName
+	// 					},
+	// 					'property': {
+	// 						'type': 'Identifier',
+	// 						'name': 'prototype'
+	// 					}
+	// 				},
+	// 				'property': {
+	// 					'type': 'Identifier',
+	// 					'name': 'toString'
+	// 				}
+	// 			},
+	// 			'right': {
+	// 				'type': 'FunctionExpression',
+	// 				'id': null,
+	// 				'params': [],
+	// 				'defaults': [],
+	// 				'body': {
+	// 					'type': 'BlockStatement',
+	// 					'body': [{
+	// 						'type': 'ReturnStatement',
+	// 						'argument': {
+	// 							'type': 'Literal',
+	// 							'value': ' -' + objectName,
+	// 							'raw': ' - ' + objectName
+	// 						}
+	// 					}]
+	// 				},
+	// 				'generator': false,
+	// 				'expression': false
+	// 			}
+	// 		}
+	// 	}
+	// };
 
 	var makeHandler = function (handlerMethods, constructorBody, identifiers) {
 		identifiers = identifiers || [];
 
-		var renameSelfIdentifiers = function (parsenode, string) {
+		var renameSelfIdentifiers = function (parsenode, string, handlerName) {
 			estraverse.replace(parsenode, {
 				enter: function (node) {
 
@@ -300,7 +334,9 @@ var handlerTransform = (function () {
 						var fieldToRename = node.property.name;
 						if (identifiers.indexOf(fieldToRename) !== -1) {
 							node.property.name = renameIdentifier(fieldToRename, string);
-						}
+						}else if(fieldToRename === 'id'){
+                            node.object = createIdentifier(handlerName)
+                        }
 					}
 				}
 			});
@@ -315,21 +351,24 @@ var handlerTransform = (function () {
 			constructorBody: function (name) {
 				return constructorBody.slice().map(function (e) {
 					var stm = e(name);
-					renameSelfIdentifiers(stm, name);
+					renameSelfIdentifiers(stm, name, name);
 					return stm;
 				});
 			},
 			//keep the current handler info accessible as annotations in code will decide where
 			//constructorBody and the methods will end up.
-			newHandler: function (handlerName, parentNodeName, hasPriority, methods, body) {
+			newHandler: function (id, handlerName, parentNodeName, hasPriority, methods, body) {
 				var handler = [];
 
 				handler.push(createConstructor(handlerName, body));
 
 				if (parentNodeName)
 					handler.push(createSuperMethod(handlerName, parentNodeName));
+                
+                if(id)
+                    handler.push(createHandlerIdentifier(handlerName, id));
 
-				handler.push(createPriorityMethod(handlerName, hasPriority));
+				//handler.push(createPriorityMethod(handlerName, hasPriority));
 				handler.push(createSetPrototype(handlerName));
 				handler.push(createSetConstructor(handlerName));
 				//handler.push(createToStringMethod(handlerName));
@@ -340,7 +379,7 @@ var handlerTransform = (function () {
 
 				var result = createBlockStatement(handler);
 				//rename all identifiers that have to be renamed and are not yet renamed.
-				renameSelfIdentifiers(result, (body.length === 0) ? handlerName : parentNodeName);
+				renameSelfIdentifiers(result, (body.length === 0) ? handlerName : parentNodeName, handlerName);
 
 				return result;
 			}
@@ -359,12 +398,20 @@ var handlerTransform = (function () {
 		var methods           = [];
 		var constructorBody   = [];
 		var identifiersRename = [];
+        var hasHandlerMethod  = false;
 
+        //Perform renames and warn about inconsistencies
 		estraverse.replace(node, {
 			enter: function (node, parent) {
 
+                if (esp_isProperty(node) && esp_isIdentifier(node.key) && Handler.reservedKeywords.indexOf(node.key.name) != -1){
+                    console.log('Warning ' + node.key.name + " is a reserved keyword, consider renaming it.");
+                    identifiersRename.push(node.key.name);
+                } 
+
 				//replace first arg of special handler methods by field access.
 				if (esp_isProperty(node) && esp_isIdentifier(node.key) && isSpecialHandlerProperty(node)) {
+                    hasHandlerMethod = true;
 					if (node.value.params.length && esp_isIdentifier(node.value.params[0])) { //first arg
 						var argName = node.value.params[0].name;
 						node.value.params = [];
@@ -376,7 +423,7 @@ var handlerTransform = (function () {
 								if (esp_isIdentifier(node) && node.name === argName) {
 
 									if (parent.property && parent.property.name && Handler.callInterface.indexOf(parent.property.name) === -1)
-										throw new Error('Error: undefined identifier \'' + parent.property.name + '\', does not appear in call interface.');
+										throw new Error('Error: identifier \'' + parent.property.name + '\' does not appear in call interface in ' + name +'.');
 
 									return {
 										'type': 'MemberExpression',
@@ -406,6 +453,10 @@ var handlerTransform = (function () {
 			}
 		});
 
+        if(!hasHandlerMethod){
+            console.log('Handler ' + name + ' does not have one of the required handler methods. Consider adding one of: ' + Handler.handlerMethods.toString() + ".")
+        }
+
 		//Transform object properties.
 		estraverse.traverse(node, {
 			enter: function (node) {
@@ -430,7 +481,7 @@ var handlerTransform = (function () {
 	};
 
 
-	var makeHandlerAnnotation = function (parent, uniqueName, handler, priority) {
+	var makeHandlerAnnotation = function (parent, uniqueName, handler, priority, id) {
 		return {
 			_parent: parent,
 			_uniqueName: uniqueName,
@@ -438,6 +489,7 @@ var handlerTransform = (function () {
 			_rpcCount: 0,
 			_priority: priority,
 			_leafName: Handler.makeLeafName(uniqueName),
+            _id: id,
 
 			getParent: function () {
 				return this._parent;
@@ -477,6 +529,13 @@ var handlerTransform = (function () {
 				this._priority = priority;
 			},
 
+            getId: function () {
+                return this._id;
+            },
+            setId: function (id) {
+                this._id = id;
+            },
+
 			getLeafName: function () {
 				return this._leafName;
 			},
@@ -510,7 +569,7 @@ var handlerTransform = (function () {
 
 				var currentName = m + Handler.handlerCtr;
 
-				var annotationInfo = makeHandlerAnnotation(currentName, currentName, m, priority);
+				var annotationInfo = makeHandlerAnnotation(currentName, currentName, m, priority, Handler.handlerCtr);
 
 				if (lastParent) {
 					//last one added is our parent

@@ -63,7 +63,8 @@ var handlerGenerate = (function () {
 			leafName   = current.getLeafName(),
 			parent     = current.getParent(),
 			priority   = current.getPriority(),
-			rpcCount   = current.getRpcCount();
+			rpcCount   = current.getRpcCount(),
+            id         = current.getId();
 
 		if (current.isTopNode()) { //top node
 			parent = undefined;
@@ -85,10 +86,10 @@ var handlerGenerate = (function () {
 
 		var generatedhandlers = [];
 		//make handler
-		generatedhandlers.push(handlerDefinition.newHandler(uniqueName, parent, priority, handlerMethods, []));
+		generatedhandlers.push(handlerDefinition.newHandler(id, uniqueName, parent, priority, handlerMethods, []));
 
 		if (rpcCount > 0) //make its corresponding leaf
-			generatedhandlers.push(handlerDefinition.newHandler(leafName, uniqueName, false, [], handlerState[uniqueName]));
+			generatedhandlers.push(handlerDefinition.newHandler(null, leafName, uniqueName, false, [], handlerState[uniqueName]));
 
 		return generatedhandlers;
 	};
