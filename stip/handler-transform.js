@@ -328,16 +328,26 @@ var handlerTransform = (function () {
 
 		var renameSelfIdentifiers = function (parsenode, string, handlerName) {
 			estraverse.replace(parsenode, {
-				enter: function (node) {
-
+				enter: function (node, upnode) {
+                    
 					if (esp_isMemberExpression(node) && esp_isThisExpression(node.object) && esp_isIdentifier(node.property)) {
-						var fieldToRename = node.property.name;
-						if (identifiers.indexOf(fieldToRename) !== -1) {
-							node.property.name = renameIdentifier(fieldToRename, string);
-						}else if(fieldToRename === 'id'){
-                            node.object = createIdentifier(handlerName)
+						if(esp_isCallExp (upnode)){
+                            //self method -> handler class method
+                            node.object = createIdentifier(handlerName);
+                        }else{
+                            var fieldToRename = node.property.name;
+                            if (identifiers.indexOf(fieldToRename) !== -1) {
+                                //other identifiers that have to be renamed to avoid nameclashes.
+                                node.property.name = renameIdentifier(fieldToRename, string);
+                            
+                            }else if(fieldToRename === 'id'){
+                                //self method -> handler class method
+                                node.object = createIdentifier(handlerName)
+                            }
                         }
 					}
+
+
 				}
 			});
 		}
@@ -444,7 +454,7 @@ var handlerTransform = (function () {
 
 				//Take the field identifiers in: var obj = {field:...} for renaming.
 				if (esp_isProperty(node) && esp_isIdentifier(node.key)) {
-					if (esp_isFunExp(node.value) && isSpecialHandlerProperty(node))
+					if (esp_isFunExp(node.value))
 						return;
 
 					var fieldToRename = node.key.name;
@@ -464,7 +474,7 @@ var handlerTransform = (function () {
 					var methodName = node.key.name;
 
 					//only special handler methods will stay
-					if (esp_isFunExp(node.value) && isSpecialHandlerProperty(node)) {
+					if (esp_isFunExp(node.value)){
 						methods.push(createMethod(methodName, node.value));
 					} else {
 						//other methods and fields, will become fields in constructor
