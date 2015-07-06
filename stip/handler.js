@@ -9,7 +9,7 @@ var Handler = (function () {
 	var handlerMethods =
 		['onException', 'onNativeException', 'onLibraryException', 'onApplicationException', 'onNetworkException'];
 	var callInterface =
-		['callName', 'callArgs', 'callError', 'callResult', 'callRetry', 'retry', 'alternateCall', 'fail', 'succeed', 'continue', 'proceed', 'hasFailureContinuation'];
+		['callName', 'callArgs', 'callError', 'callResult', 'callRetry', 'retry', 'alternateCall', 'fail', 'succeed', 'continue', 'proceed', 'hasFailureContinuation', 'isCallErrorType'];
 	var handlerContext = 'ctxt';
 	var prioritySign = '+';
 	var annotationRegExp = /[\,\s]+([+]?[a-zA-Z_$]{1}[a-zA-Z0-9_$]*)/g;

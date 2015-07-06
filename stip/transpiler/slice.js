@@ -103,7 +103,7 @@ var transformBody = function (option, slicing, body, methods) {
         case 'node.js':
             if (option.tier === 'client') {
                 var methodsDecl = NodeParse.methodsClient();
-                methodsDecl.expression.arguments = methods;
+                methodsDecl.expression.arguments[0].properties = methods;
                 /* Add cloud types declarations */
                 for(var name in slicing.cloudtypes) {
                     if(slicing.cloudtypes.hasOwnProperty(name)) {
@@ -117,7 +117,7 @@ var transformBody = function (option, slicing, body, methods) {
             else {
                 /* server rpcs + cloudtypes are added */
                 var methodsDecl = NodeParse.methodsServer();
-                methodsDecl.expression.arguments = methods;
+                methodsDecl.expression.arguments[0].properties = methods;
 
                 /* Declare cloud types + add their declarations as well (for use on server side as well) */
                 for(var name in slicing.cloudtypes) {

@@ -207,43 +207,38 @@ var NodeParse = (function () {
     var asyncFun = function () {
         return  {
                 parsenode :  {
-                    "type": "ObjectExpression",
-                    "properties": [
-                        {
-                            "type": "Property",
-                            "key": {
-                                "type": "Literal",
-                                // Name must be set by vardecl
-                                "value": "",
-                            },
-                            "value": {
-                                "type": "FunctionExpression",
-                                "id": null,
-                                "params": [],
-                                "defaults": [],
-                                "body": {
-                                    "type": "BlockStatement",
-                                    "body": []
-                                },
-                                "rest": null,
-                                "generator": false,
-                                "expression": false
-                            },
-                            "kind": "init"
-                        }
-                    ]
-              }, 
+                    "type": "Property",
+                    "key": {
+                        "type": "Literal",
+                        // Name must be set by vardecl
+                        "value": "",
+                    },
+                    "value": {
+                        "type": "FunctionExpression",
+                        "id": null,
+                        "params": [],
+                        "defaults": [],
+                        "body": {
+                            "type": "BlockStatement",
+                            "body": []
+                        },
+                        "rest": null,
+                        "generator": false,
+                        "expression": false
+                    },
+                    "kind": "init"
+                }, 
 
             setBody : function (body) {
-                this.parsenode.properties[0].value.body.body = body 
+                this.parsenode.value.body.body = body 
             }, 
 
             addParams : function (params) {
-                this.parsenode.properties[0].value.params = params;
+                this.parsenode.value.params = params;
             },
 
             setName : function (name) {
-                this.parsenode.properties[0].key.value = name;
+                this.parsenode.key.value = name;
             }
         }
     }
