@@ -5,43 +5,43 @@ var handlerPreDefined = (function() {
 
 
     var predefined = function() {
-    	var logHandler, 
-    		bufferHandler, 
-    		tryOnceHandler, 
-    		noOpHandler, 
-    		abortHandler;
+        var logHandler, 
+            bufferHandler, 
+            tryOnceHandler, 
+            noOpHandler, 
+            abortHandler;
 
-    	/* Handler for logging exceptions. */
+        /* Handler for logging exceptions. */
         logHandler = esprima.parse("var Log = {\
-				logger: UniqueLogger.getInstance(),\
-					onException: function (call) {\
-						this.logger.append('RPC CALL: ' + call.callName + ' ARGS: ' + call.callArgs() + ' ERROR: ' + call.callError);\
-						call.proceed();\
-					}, \
-					onNativeException: function (call) {\
-						this.logger.append('RPC CALL: ' + call.callName + ' ARGS ' + call.callArgs() + ' ERROR: ' + call.callError);\
-						this.logger.append(call.callError.stack);\
-						call.proceed();\
-					}\
-			}").body[0].declarations[0];
+                logger: UniqueLogger.getInstance(),\
+                    onException: function (call) {\
+                        this.logger.append('RPC CALL: ' + call.callName + ' ARGS: ' + call.callArgs() + ' ERROR: ' + call.callError);\
+                        call.proceed();\
+                    }, \
+                    onNativeException: function (call) {\
+                        this.logger.append('RPC CALL: ' + call.callName + ' ARGS ' + call.callArgs() + ' ERROR: ' + call.callError);\
+                        this.logger.append(call.callError.stack);\
+                        call.proceed();\
+                    }\
+            }").body[0].declarations[0];
         
 
         /* Handler for buffering RPCs on relevant exceptions. */
         bufferHandler = esprima.parse("var Buffer = {\
-					buffer: UniqueBuffer.getInstance(),\
-					onNetworkException: function (call) {\
-						var buffer = this.buffer;\
-						buffer.bufferCall(call);\
-					}\
-				}").body[0].declarations[0];
+                    buffer: UniqueBuffer.getInstance(),\
+                    onNetworkException: function (call) {\
+                        var buffer = this.buffer;\
+                        buffer.bufferCall(call);\
+                    }\
+                }").body[0].declarations[0];
 
 
         /* Handler for not retrying RPC on relevant exceptions. */
         tryOnceHandler = esprima.parse("var TryOnce = {\
-					onNetworkException: function (call) {\
-						call.continue(call.callError, call.callResult);\
-					}\
-				}").body[0].declarations[0];
+                    onNetworkException: function (call) {\
+                        call.continue(call.callError, call.callResult);\
+                    }\
+                }").body[0].declarations[0];
 
 
         /* Handler that does not do a thing. */
@@ -54,9 +54,9 @@ var handlerPreDefined = (function() {
 
         /* Handler that halts the computation. */
         abortHandler = esprima.parse("var Abort = {\
-        			onException: function (call) {\
-					}\
-				}").body[0].declarations[0];
+                    onException: function (call) {\
+                    }\
+                }").body[0].declarations[0];
         
 
 
