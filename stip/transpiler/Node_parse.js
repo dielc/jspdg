@@ -93,7 +93,7 @@ var NodeParse = (function () {
                     if(syncHandler){
                         var throwS = {
                             "type": "IfStatement",
-                            "test": this.getResPar(),
+                            "test": this.getErrPar(),
                             "consequent": {
                                 "type": "ThrowStatement",
                                 "argument": this.getErrPar()
@@ -108,7 +108,6 @@ var NodeParse = (function () {
                     
                   },
                   getBody    : function () {
-                    debugger;
                     if(syncHandler){
                         var inTryBody = this.parsenode.body.body[0].block.body.slice(1);
                         return inTryBody.concat(this.parsenode.body.body.slice(1)); 
