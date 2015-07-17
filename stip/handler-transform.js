@@ -100,57 +100,25 @@ var handlerTransform = (function () {
 
     var createSuperMethod = function (objectName, parentNodeName) {
         return {
-            'type': 'ExpressionStatement',
-            'expression': {
-                'type': 'AssignmentExpression',
-                'operator': '=',
-                'left': {
-                    'type': 'MemberExpression',
-                    'computed': false,
-                    'object': {
-                        'type': 'Identifier',
-                        'name': objectName
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "AssignmentExpression",
+                "operator": "=",
+                "left": {
+                    "type": "MemberExpression",
+                    "computed": false,
+                    "object": {
+                        "type": "Identifier",
+                        "name": objectName
                     },
-                    'property': {
-                        'type': 'Identifier',
-                        'name': 'super'
+                    "property": {
+                        "type": "Identifier",
+                        "name": "parent"
                     }
                 },
-                'right': {
-                    'type': 'FunctionExpression',
-                    'id': null,
-                    'params': [{
-                        'type': 'Identifier',
-                        'name': 'target'
-                    }],
-                    'defaults': [],
-                    'body': {
-                        'type': 'BlockStatement',
-                        'body': [{
-                            'type': 'ExpressionStatement',
-                            'expression': {
-                                'type': 'CallExpression',
-                                'callee': {
-                                    'type': 'MemberExpression',
-                                    'computed': false,
-                                    'object': {
-                                        'type': 'Identifier',
-                                        'name': 'target'
-                                    },
-                                    'property': {
-                                        'type': 'Identifier',
-                                        'name': 'handleException'
-                                    }
-                                },
-                                'arguments': [{
-                                    'type': 'Identifier',
-                                    'name': parentNodeName
-                                }]
-                            }
-                        }]
-                    },
-                    'generator': false,
-                    'expression': false
+                "right": {
+                    "type": "Identifier",
+                    "name": parentNodeName
                 }
             }
         }
@@ -274,80 +242,74 @@ var handlerTransform = (function () {
         }
     };
 
-    // var createToStringMethod = function (objectName) {
-    //  return {
-    //      'type': 'ExpressionStatement',
-    //      'expression': {
-    //          'type': 'AssignmentExpression',
-    //          'operator': '=',
-    //          'left': {
-    //              'type': 'MemberExpression',
-    //              'computed': false,
-    //              'object': {
-    //                  'type': 'MemberExpression',
-    //                  'computed': false,
-    //                  'object': {
-    //                      'type': 'Identifier',
-    //                      'name': objectName
-    //                  },
-    //                  'property': {
-    //                      'type': 'Identifier',
-    //                      'name': 'prototype'
-    //                  }
-    //              },
-    //              'property': {
-    //                  'type': 'Identifier',
-    //                  'name': 'toString'
-    //              }
-    //          },
-    //          'right': {
-    //              'type': 'FunctionExpression',
-    //              'id': null,
-    //              'params': [],
-    //              'defaults': [],
-    //              'body': {
-    //                  'type': 'BlockStatement',
-    //                  'body': [{
-    //                      'type': 'ReturnStatement',
-    //                      'argument': {
-    //                          'type': 'Literal',
-    //                          'value': ' -' + objectName,
-    //                          'raw': ' - ' + objectName
-    //                      }
-    //                  }]
-    //              },
-    //              'generator': false,
-    //              'expression': false
-    //          }
-    //      }
-    //  }
-    // };
+    var createToStringMethod = function (objectName) {
+        return {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "AssignmentExpression",
+                "operator": "=",
+                "left": {
+                    "type": "MemberExpression",
+                    "computed": false,
+                    "object": {
+                        "type": "Identifier",
+                        "name": objectName
+                    },
+                    "property": {
+                        "type": "Identifier",
+                        "name": "toString"
+                    }
+                },
+                "right": {
+                    "type": "FunctionExpression",
+                    "id": null,
+                    "params": [],
+                    "defaults": [],
+                    "body": {
+                        "type": "BlockStatement",
+                        "body": [
+                            {
+                                "type": "ReturnStatement",
+                                "argument": {
+                                    "type": "Literal",
+                                    'value': ' -' + objectName,
+                                    'raw': ' - ' + objectName
+                                }
+                            }
+                        ]
+                    },
+                    "generator": false,
+                    "expression": false
+                }
+            }
+        };
+    };
 
     var makeHandler = function (handlerMethods, constructorBody, identifiers) {
         identifiers = identifiers || [];
+
 
         var renameSelfIdentifiers = function (parsenode, string, handlerName) {
             estraverse.replace(parsenode, {
                 enter: function (node, upnode) {
                     
                     if (esp_isMemberExpression(node) && esp_isThisExpression(node.object) && esp_isIdentifier(node.property)) {
-                        if(esp_isCallExp (upnode)){
-                            //self method -> handler class method
-                            node.object = createIdentifier(handlerName);
-                        }else{
-                            var fieldToRename = node.property.name;
-                            if (identifiers.indexOf(fieldToRename) !== -1) {
-                                //other identifiers that have to be renamed to avoid nameclashes.
-                                node.property.name = renameIdentifier(fieldToRename, string);
+                        var fieldToRename = node.property.name;
+
+                        //self method -> handler class method
+                        if (identifiers.filter(function(e){
+                                return e.key === fieldToRename && e.classIdentifier
+                                }).length !== 0) {    
                             
-                            }else if(fieldToRename === 'id'){
-                                //self method -> handler class method
-                                node.object = createIdentifier(handlerName)
-                            }
+                            node.object = createIdentifier(handlerName);
+                        }else if (identifiers.filter(function(e){ //other identifiers that have to be renamed to avoid nameclashes.
+                                return e.key === fieldToRename && !e.classIdentifier
+                                }).length !== 0) {
+                                
+                            node.property.name = renameIdentifier(fieldToRename, string);
+                            
                         }
                     }
-
-
                 }
             });
         }
@@ -364,7 +326,7 @@ var handlerTransform = (function () {
                         });
 
                         if(override.length >= 1){
-                            debugger;
+
                             var newValue =override[override.length-1];
                             node.right = newValue.value;
                         }
@@ -394,22 +356,32 @@ var handlerTransform = (function () {
             newHandler: function (id, handlerName, parentNodeName, hasPriority, methods, body) {
                 var handler = [];
 
-                handler.push(createConstructor(handlerName, body));
 
+                // Add a constructor.
+                handler.push(createConstructor(handlerName, body));
+            
+                //
                 if (parentNodeName)
                     handler.push(createSuperMethod(handlerName, parentNodeName));
-                
-                if(id)
-                    handler.push(createHandlerIdentifier(handlerName, id));
 
                 //handler.push(createPriorityMethod(handlerName, hasPriority));
-                handler.push(createSetPrototype(handlerName));
-                handler.push(createSetConstructor(handlerName));
-                //handler.push(createToStringMethod(handlerName));
+                if(!id){
+
+                    handler.push(createSetPrototype(handlerName));
+                    handler.push(createSetConstructor(handlerName));
+
+                }else{
+
+                    handler.push(createHandlerIdentifier(handlerName, id));
+
+                }
+
+                handler.push(createToStringMethod(handlerName));
 
                 methods.map(function (method) {
                     handler.push(method(handlerName));
                 });
+
 
                 var result = createBlockStatement(handler);
                 //rename all identifiers that have to be renamed and are not yet renamed.
@@ -434,13 +406,21 @@ var handlerTransform = (function () {
         var identifiersRename = [];
         var hasHandlerMethod  = false;
 
+        function makeRenameObject(key, classIdentifier){
+            return {
+                key: key,
+                classIdentifier: classIdentifier
+            }
+        }
+
         //Perform renames and warn about inconsistencies
         estraverse.replace(node, {
             enter: function (node, parent) {
 
+                //Remove any reserved
                 if (esp_isProperty(node) && esp_isIdentifier(node.key) && Handler.reservedKeywords.indexOf(node.key.name) != -1){
                     console.log('Warning ' + node.key.name + " is a reserved keyword, consider renaming it.");
-                    identifiersRename.push(node.key.name);
+                    this.remove();
                 } 
 
                 //replace first arg of special handler methods by field access.
@@ -478,14 +458,21 @@ var handlerTransform = (function () {
 
                 //Take the field identifiers in: var obj = {field:...} for renaming.
                 if (esp_isProperty(node) && esp_isIdentifier(node.key)) {
-                    if (esp_isFunExp(node.value))
-                        return;
-
                     var fieldToRename = node.key.name;
-                    identifiersRename.push(fieldToRename);
+
+                    if (esp_isFunExp(node.value)){
+                        identifiersRename.push(makeRenameObject(fieldToRename, true));
+                        return;
+                    }
+                    
+                    identifiersRename.push(makeRenameObject(fieldToRename, false));
                 }
             }
         });
+        
+        Handler.reservedKeywords.map(function(e){
+            identifiersRename.push(makeRenameObject(e, true));
+        })
 
         if(!hasHandlerMethod){
             console.log('Handler ' + name + ' does not have one of the required handler methods. Consider adding one of: ' + Handler.handlerMethods.toString() + ".")
