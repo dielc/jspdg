@@ -13,16 +13,17 @@ var handlerPreDefined = (function() {
 
         /* Handler for logging exceptions. */
         logHandler = esprima.parse("var log = {\
+                propagate: true,\
                 msg: '',\
                 logger: UniqueLogger.getInstance(),\
                     onException: function (call) {\
                         this.logger.append(this.msg + ' CALL: ' + call.callName + ' ARGS: ' + call.callArgs() + ' ERROR: ' + call.callError);\
-                        call.proceed();\
+                        if(this.propagate) call.proceed();\
                     }, \
                     onNativeException: function (call) {\
                         this.logger.append(this.msg + ' CALL: ' + call.callName + ' ARGS ' + call.callArgs() + ' ERROR: ' + call.callError);\
                         this.logger.append(call.callError.stack);\
-                        call.proceed();\
+                        if(this.propagate) call.proceed();\
                     }\
             }").body[0].declarations[0];
         
