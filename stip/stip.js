@@ -89,6 +89,10 @@ var Stip = (function () {
             entryNode = new EntryNode(graphs.PDG.entIndex, func_node),
             prev_entry = graphs.PDG.entryNode;
 
+        if(node.handlersAsync){
+            entryNode.parsenode.handlersAsync = node.handlersAsync.slice();
+        }
+
         graphs.PDG.changeEntry(entryNode);
         graphs.ATP.addNodes(func_node, entryNode);
         handleFormalParameters(graphs,node,entryNode);
