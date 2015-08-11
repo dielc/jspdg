@@ -333,11 +333,11 @@ var CPSTransform = (function () {
                 // TODO check parent (don't transform return statement in nested function def)
                 if (esp_isRetStm(n)) 
                     /* First argument of callback is error */
-                    n.update('callback(null, ' + n.argument.source() + ')')
+                    n.update('return callback(null, ' + n.argument.source() + ');')
 
                 if (esp_isThrowStm(n))
                 	/* Invoke callback with error argument*/  
-                	n.update('callback(' + n.argument.source() + ')')  
+                	n.update('return callback(' + n.argument.source() + ');')  
             })
 
             if (esp_isFunDecl(parsenode)) {
