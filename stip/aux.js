@@ -23,9 +23,6 @@ var esp_isVarDeclarator = function (node) {
     return node.type === 'VariableDeclarator'
 }
 
-var esp_isFunDecl = function (node) {
-    return node.type === 'FunctionDeclaration'
-}
 
 var esp_isIdentifier = function (node) {
     return node.type === 'Identifier'
@@ -107,6 +104,10 @@ var esp_isProgram = function (node) {
   return node.type === 'Program'
 }
 
+var esp_isArrayExp = function (node) {
+  return node.type === 'ArrayExpression'
+}
+
 var esp_getCalledName = function (callnode) {
     if (esp_isMemberExpression(callnode.callee)) 
         return callnode.callee.property.name
@@ -126,17 +127,21 @@ var esp_inTryStatement = function (ast, node) {
   return parent
 }
 
-var esp_hasCallStm = function (node) {
+var esp_hasCallStm = function (node, callnode) {
   var src  = escodegen.generate(node),
       call = false;
 
   falafel(src, function (node) {
     if (esp_isCallExp(node)) 
-      call = true;
+      if (callnode)
+        call = (src.indexOf(escodegen.generate(callnode)) >= 0);
+      else
+        call = true;
   })
-
   return call;
 }
+
+
 
 Array.prototype.memberAt =
     function (x)

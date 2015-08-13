@@ -19,7 +19,8 @@ var Comments = (function () {
 	var define_handler_annotation = "@defineHandlers";
     var reply_annotation     = "@reply";
     var broadcast_annotation = "@broadcast";
-    
+    var blocking_annotation  = "@blocking"
+
 
     // Client annotations is @client in comment
     var isClientAnnotated = function (comment) {
@@ -49,6 +50,10 @@ var Comments = (function () {
 
     var isBroadcastAnnotated = function (comment) {
         return comment.value.indexOf(broadcast_annotation) != -1;
+    }
+
+    var isBlockingAnnotated = function (comment) {
+        return comment.value.indexOf(blocking_annotation) != -1;
     }
 
     var isTierAnnotated = function (node) {
@@ -132,10 +137,30 @@ var Comments = (function () {
         })
     }
 
+    var handleBlockingComment = function (comment, pdgNodes) {
+        pdgNodes.map(function (pdgNode) {
+            var callnodes;
+            if (isBlockingAnnotated(comment)) {
+                if (!esp_isCallExp(pdgNode.parsenode)) {
+                    callnodes = pdgNode.findCallNodes();
+                    callnodes.map(function (callNode) {
+                        callNode.parsenode.leadingComment = comment;
+                    })
+                } 
+                if (pdgNode.isCallNode && esp_isExpStm(pdgNode.parsenode)) {
+                    pdgNode.parsenode.expression.leadingComment = comment;
+                }
+            }
+        })
+    }
+
+
     registerBeforeHandler(handleUseHandler);
     registerAfterHandler(handleReplyComment);
     registerAfterHandler(handleBroadcastComment);
+    registerAfterHandler(handleBlockingComment);
    // registerAfterHandler(handleBlockComment);
+
 
     module.handleBeforeComment      = handleBeforeComment;
     module.handleAfterComment       = handleAfterComment;
@@ -146,6 +171,7 @@ var Comments = (function () {
     module.isServerAnnotated        = isServerAnnotated;
     module.isClientAnnotated        = isClientAnnotated;
     module.isDefineHandlerAnnotated = isDefineHandlerAnnotated;
+    module.isBlockingAnnotated      = isBlockingAnnotated;
 
     return module
 

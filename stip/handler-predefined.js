@@ -68,7 +68,7 @@ var handlerPreDefined = (function() {
 
 
         /* Handler that halts the computation. */
-        abortHandler = esprima.parse("var Abort = {\
+        abortHandler = esprima.parse("var abort = {\
                     onException: function (call) {\
                     }\
                 }").body[0].declarations[0];
