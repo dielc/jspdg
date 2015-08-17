@@ -205,28 +205,29 @@ var NodeParse = (function () {
 
     var asyncFun = function () {
         return  {
-                parsenode :  {
-                    "type": "Property",
-                    "key": {
-                        "type": "Literal",
-                        // Name must be set by vardecl
-                        "value": "",
+
+            parsenode :  {
+                "type": "Property",
+                "key": {
+                    "type": "Literal",
+                    // Name must be set by vardecl
+                    "value": "",
+                },
+                "value": {
+                    "type": "FunctionExpression",
+                    "id": null,
+                    "params": [],
+                    "defaults": [],
+                    "body": {
+                        "type": "BlockStatement",
+                        "body": []
                     },
-                    "value": {
-                        "type": "FunctionExpression",
-                        "id": null,
-                        "params": [],
-                        "defaults": [],
-                        "body": {
-                            "type": "BlockStatement",
-                            "body": []
-                        },
-                        "rest": null,
-                        "generator": false,
-                        "expression": false
-                    },
-                    "kind": "init"
-                }, 
+                    "rest": null,
+                    "generator": false,
+                    "expression": false
+                },
+                "kind": "init"
+            }, 
 
             setBody : function (body) {
                 this.parsenode.value.body.body = body 
