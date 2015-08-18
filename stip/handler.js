@@ -9,7 +9,7 @@ var Handler = (function () {
     var handlerMethods =
         ['onException', 'onNativeException', 'onLibraryException', 'onApplicationException', 'onNetworkException'];
     var callInterface =
-        ['callName', 'callArgs', 'callError', 'callResult', 'callRetry', 'retry', 'alternateCall', 'fail', 'succeed', 'continue', 'proceed', 'hasFailureContinuation', 'isCallErrorType'];
+        ['callName', 'callArgs', 'callError', 'callResult', 'callRetry', 'retry', 'alternativeCall', 'fail', 'succeed', 'continue', 'proceed', 'hasFailureContinuation', 'isCallErrorType'];
     var handlerContext   = 'ctxt';
     var prioritySign     = '+';
     var annotationRegExp = /[\,\s]+([+]?[a-zA-Z_$]{1}[a-zA-Z0-9_$]*)([\[]{1}[a-zA-Z0-9_$,:\'\"]*[\]]{1})*/g;
@@ -19,8 +19,8 @@ var Handler = (function () {
         return name + 'Handler';
     };
 
-    var makeProxyName = function (name) {
-        return 'Proxy' + name.slice(-1);
+    var makeProxyName = function (id) {
+        return 'Proxy' + id;
     };
 
     var generate   = handlerGenerate();

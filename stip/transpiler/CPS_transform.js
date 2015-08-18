@@ -37,8 +37,7 @@ var CPSTransform = (function () {
 				lastHandler = call.parsenode.handlersAsync[handlerCtr - 1];
 
 			if (asyncCall.setObjectName) {
-				var handlerName = lastHandler.getUniqueName();
-				var proxyName = Handler.makeProxyName(handlerName);
+				var proxyName = Handler.makeProxyName(lastHandler.getId());
 				asyncCall.setObjectName(proxyName);
 			}
 
@@ -456,6 +455,19 @@ var CPSTransform = (function () {
                 transformCall = transform.asyncReplyC();
                 transformCall.setName(callnode.name);
                 transformCall.addArgs(callnode.parsenode.arguments);
+
+                if (callnode.parsenode.handlersAsync && callnode.parsenode.handlersAsync.length != 0) {
+                    var handlerCtr = callnode.parsenode.handlersAsync.length,
+                        lastHandler = callnode.parsenode.handlersAsync[handlerCtr - 1];
+
+                    if (transformCall.setObjectName) {
+                        var proxyName = Handler.makeProxyName(lastHandler.getId());
+                        transformCall.setObjectName(proxyName);
+                    }
+
+                    lastHandler.incRpcCount();
+                }   
+
                 return [nodes, transformCall]
             }
         }

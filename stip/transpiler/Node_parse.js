@@ -254,14 +254,25 @@ var NodeParse = (function () {
                         "computed"  : false,
                         "object"    : {
                             "type"  : "Identifier",
-                            "name"  : "this"
+                            "name"  : "server"
                                 },
                         "property"  : {
                             "type"  : "Identifier",
-                            "name"  : "rpcCall"
+                            "name"  : "rpcTo"
                         }
                     },
                     "arguments" : [
+                        {
+                            "type": "MemberExpression",
+                            "computed": false,
+                            "object": {
+                                "type": "ThisExpression"
+                            },
+                            "property": {
+                                "type": "Identifier",
+                                "name": "id"
+                            }
+                        },
                         {
                             "type"  : "Literal",
                             "value" : ""
@@ -270,11 +281,15 @@ var NodeParse = (function () {
             },
 
             setName : function (name) {
-                this.parsenode.expression.arguments[0].value = name;
+                this.parsenode.expression.arguments[1].value = name;
             },
 
             addArgs : function (args) {
                 this.parsenode.expression.arguments = this.parsenode.expression.arguments.concat(args);
+            },
+
+            setObjectName: function (name) {
+                this.parsenode.expression.callee.object.name = name
             }
 
         }
@@ -313,6 +328,10 @@ var NodeParse = (function () {
 
             setName : function (name) {
                 this.parsenode.expression.arguments[0].value = name;
+            },
+
+            setObjectName: function (name) {
+                this.parsenode.expression.callee.object.name = name
             }
         }
     }

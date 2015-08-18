@@ -73,14 +73,14 @@ var addHeader = function (option, sliced) {
 			
 			//we only need a leaf if there are calls to this handler.
 			if (el.getRpcCount() > 0) {
-				var proxyName = Handler.makeProxyName(el.getUniqueName())
+				var proxyName = Handler.makeProxyName(el.getId());
 				proxies = proxies.concat(Handler.Generate.proxyDefinition(proxyName, el.getLeafName()));
 			}
 		});
 
 		//only add handlers if there are RPCs
 		if(totalRpcCount > 0){
-			sliced.setup = sliced.setup.concat(Handler.Generate.proxySetup());
+			sliced.setup = sliced.setup.concat(Handler.Generate.proxySetup(option.tier));
 
 			handlers.map(function(el){
 				sliced.setup = sliced.setup.concat(el);
@@ -166,6 +166,16 @@ var constructProgram = function (nodes, option) {
 
     //program.body = addPrimitives(option);
     option.failurehandlers = [];
+
+    nodes.map(function(node){
+        if(node.parsenode && node.parsenode.handlersAsync)
+            node.parsenode.handlersAsync.map(function (el){
+                if(option.failurehandlers.indexOf(el) === -1){
+                    option.failurehandlers.push(el)
+                }
+            });
+    })
+
     while (nodes.length > 0) {
         var n = nodes.shift();
         if(n.parsenode) {
@@ -174,13 +184,13 @@ var constructProgram = function (nodes, option) {
                 program.body = program.body.concat(slicing.parsednode);
             }
 
-        	if(n.parsenode.handlersAsync){
-        		n.parsenode.handlersAsync.map(function (el){
-        			if(option.failurehandlers.indexOf(el) === -1){
-        				option.failurehandlers.push(el)
-        			}
-        		});
-        	}
+        	// if(n.parsenode.handlersAsync){
+        	// 	n.parsenode.handlersAsync.map(function (el){
+        	// 		if(option.failurehandlers.indexOf(el) === -1){
+        	// 			option.failurehandlers.push(el)
+        	// 		}
+        	// 	});
+        	// }
 
             nodes = slicing.nodes;  
             option.cloudtypes = slicing.cloudtypes;

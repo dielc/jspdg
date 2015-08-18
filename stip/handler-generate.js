@@ -4,8 +4,9 @@ var handlerGenerate = (function () {
 
     var module = {};
 
-    var handlerProxySetup = function () {
-        return esprima.parse('var fp = makeFailureProxy(client);').body[0];
+    var handlerProxySetup = function (target) {
+        target = target || 'client';
+        return esprima.parse('var fp = makeFailureProxy(' + target + ');').body[0];
     };
 
     var handlerProxyDefinition = function (name, handler) {

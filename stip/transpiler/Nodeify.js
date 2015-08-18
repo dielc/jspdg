@@ -370,8 +370,22 @@ var Nodeify = (function () {
                     return sliced;
                 }
                 cpscall = NodeParse.createBroadcast();
-                cpscall.setName('"' + node.name + '"');
+                cpscall.setName(node.name);
                 cpscall.addArgs(node.parsenode.arguments);
+                
+
+                if (node.parsenode.handlersAsync && node.parsenode.handlersAsync.length != 0) {
+                    var handlerCtr = node.parsenode.handlersAsync.length,
+                        lastHandler = node.parsenode.handlersAsync[handlerCtr - 1];
+
+                    if (cpscall.setObjectName) {
+                        var proxyName = Handler.makeProxyName(lastHandler.getId());
+                        cpscall.setObjectName(proxyName);
+                    }
+
+                    lastHandler.incRpcCount();
+                }
+
                 sliced.parsednode = cpscall.parsenode;
 
                 return sliced;
