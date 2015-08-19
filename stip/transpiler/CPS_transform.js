@@ -54,6 +54,14 @@ var CPSTransform = (function () {
             getRemainderStms(call).map(function (stm) {
                 if (slicedContains(slicednodes, stm)) {
                     bodynode = transform.transformF(slicednodes, stm, transform.option); 
+
+                    var e_in = bodynode.node.edges_in.filter(function (e) {
+                                return  e.equalsType(EDGES.CONTROL) && 
+                                        esp_isTryStm(e.from.parsenode)
+                            }).map(function (e) { return e.from });
+
+                    bodynode.parsednode.inTryBlock = (e_in.length != 0)
+
                     slicednodes = bodynode.nodes;
                     callbackstms = callbackstms.concat(bodynode);
                 }
